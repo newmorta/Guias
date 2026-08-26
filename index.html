@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía Interactiva — Sistemas de Calidad</title>
+<style>
+:root{
+  --bg:#0b1020; --panel:#121a2d; --panel2:#18223a; --text:#eef3ff;
+  --muted:#9eabc7; --accent:#7c5cff; --accent2:#29d3a5; --danger:#ff647c;
+  --border:#293653; --shadow:0 14px 40px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#080c17,#111a31 55%,#0a1222);color:var(--text);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+header{padding:34px 22px 20px;max-width:1180px;margin:auto}
+h1{margin:0;font-size:clamp(28px,4vw,46px)}
+.sub{color:var(--muted);max-width:850px}
+.container{max-width:1180px;margin:auto;padding:0 22px 50px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.tab{border:1px solid var(--border);background:var(--panel);color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer}
+.tab.active{background:var(--accent);border-color:var(--accent)}
+.section{display:none}.section.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:rgba(18,26,45,.88);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+.card h3{margin-top:0}
+.badge{display:inline-block;padding:4px 9px;border-radius:999px;background:#222c4b;color:#cad5ff;font-size:12px;margin-bottom:8px}
+.key{color:#ddd7ff;font-weight:700}
+.small{font-size:13px;color:var(--muted)}
+.btn{border:0;border-radius:12px;padding:11px 14px;cursor:pointer;background:var(--accent);color:white;font-weight:700}
+.btn.secondary{background:#222c4b}
+.progress{height:12px;background:#202b45;border-radius:99px;overflow:hidden}
+.bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:.3s}
+.flashcard{min-height:280px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;perspective:900px}
+.flash-inner{width:100%;min-height:280px;display:flex;align-items:center;justify-content:center;padding:35px;border:1px solid var(--border);border-radius:20px;background:linear-gradient(145deg,#17223c,#0f172b)}
+.answer{display:none}
+.flashcard.revealed .question{display:none}.flashcard.revealed .answer{display:block}
+.quiz-q{font-size:19px;font-weight:700}
+.option{display:block;width:100%;text-align:left;margin:8px 0;padding:12px;border:1px solid var(--border);background:#11192c;color:var(--text);border-radius:11px;cursor:pointer}
+.option:hover{background:#1a2743}
+.option.correct{border-color:var(--accent2);background:#11362f}
+.option.wrong{border-color:var(--danger);background:#3a1721}
+textarea,input{width:100%;background:#0f1729;color:var(--text);border:1px solid var(--border);border-radius:12px;padding:12px;font:inherit}
+.note{border-left:4px solid var(--accent);padding:12px 14px;background:#11192c;border-radius:8px}
+.footer{color:var(--muted);text-align:center;margin-top:28px}
+.stat{font-size:32px;font-weight:800}
+.search{margin:10px 0 18px}
+.hide{display:none}
+ul{padding-left:20px}
+</style>
+</head>
+<body>
+<header>
+  <div class="badge">GUÍA INTERACTIVA · BASADA EN EL PDF</div>
+  <h1>Sistemas de Calidad</h1>
+  <p class="sub">Convierte el libro en estudio activo: conceptos clave, gurús, evolución de la calidad, valores, resistencia al cambio, flashcards, preguntas y seguimiento de progreso.</p>
+</header>
+
+<div class="container">
+  <div class="card">
+    <strong>Progreso general</strong>
+    <div class="progress" style="margin-top:10px"><div id="bar" class="bar"></div></div>
+    <div class="small" id="progressText">0% completado</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="mapa">Mapa de estudio</button>
+    <button class="tab" data-tab="teoria">Teoría</button>
+    <button class="tab" data-tab="flash">Flashcards</button>
+    <button class="tab" data-tab="quiz">Examen</button>
+    <button class="tab" data-tab="errores">Repaso</button>
+  </div>
+
+  <section id="mapa" class="section active">
+    <div class="grid" id="mapGrid"></div>
+  </section>
+
+  <section id="teoria" class="section">
+    <div class="search"><input id="search" placeholder="Buscar: Deming, valores, Poka-yoke, mejora continua..."></div>
+    <div id="theory"></div>
+  </section>
+
+  <section id="flash" class="section">
+    <div class="card">
+      <h2>Flashcards</h2>
+      <p class="small">Haz clic en la tarjeta para revelar la respuesta.</p>
+      <div id="flashcard" class="flashcard">
+        <div class="flash-inner">
+          <div class="question" id="flashQ"></div>
+          <div class="answer" id="flashA"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:14px">
+        <button class="btn secondary" id="prevFlash">← Anterior</button>
+        <button class="btn" id="nextFlash">Siguiente →</button>
+      </div>
+      <p class="small" id="flashCount" style="text-align:center"></p>
+    </div>
+  </section>
+
+  <section id="quiz" class="section">
+    <div class="card">
+      <h2>Examen interactivo</h2>
+      <p class="small">Responde sin ver el libro. Las preguntas se basan en el contenido y actividades del material.</p>
+      <div id="quizBox"></div>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn" id="newQuiz">Nuevo examen</button>
+        <button class="btn secondary" id="clearQuiz">Reiniciar</button>
+      </div>
+      <div id="score" style="margin-top:16px"></div>
+    </div>
+  </section>
+
+  <section id="errores" class="section">
+    <div class="grid">
+      <div class="card">
+        <h2>Errores guardados</h2>
+        <div id="wrongList" class="small">Todavía no hay errores.</div>
+      </div>
+      <div class="card">
+        <h2>Apuntes propios</h2>
+        <p class="small">Escribe lo que te cueste recordar. Se guarda en este navegador.</p>
+        <textarea id="notes" rows="12" placeholder="Ejemplo: Ishikawa = diagrama causa-efecto y Pareto..."></textarea>
+        <button class="btn" style="margin-top:10px" id="saveNotes">Guardar apuntes</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">Contenido organizado a partir del material proporcionado: Etapa 1, Fundamentos de la Calidad.</div>
+</div>
+
+<script>
+const topics = [
+  {
+    id:"fundamentos", title:"1. Fundamentos de la Calidad", type:"Comprensión",
+    text:"La calidad se presenta como un concepto amplio relacionado con productos, servicios, educación, medio ambiente y tecnología. La gestión de la calidad se apoya en fundamentos que sirven como base para atender necesidades y especificaciones del cliente.",
+    points:[
+      "Enfoque sistémico de la calidad: examinar necesidades, establecer procedimientos y supervisarlos.",
+      "Enfoque basado en procesos: identificar y gestionar procesos y sus relaciones.",
+      "Política y objetivos de calidad: orientar la mejora; los objetivos deben ser cuantificables y coherentes.",
+      "Papel de la Alta Dirección: fomentar participación y garantizar el funcionamiento del SGC.",
+      "Valor de la documentación: unificar el enfoque, facilitar capacitación y medir resultados.",
+      "Evaluación del SGC: auditorías internas y apoyo externo para certificación.",
+      "Mejora continua: métodos para optimizar y aumentar la satisfacción del cliente."
+    ]
+  },
+  {
+    id:"gurus", title:"2. Gurús de la Calidad", type:"Dimensión 2 · Cuadro sinóptico",
+    text:"La actividad pide reflexionar sobre los gurús y sus aportes a los procesos de calidad.",
+    points:[
+      "W. Edwards Deming: filosofía de calidad y 14 puntos; mejora continua.",
+      "Joseph M. Juran: planificación, control y mejoramiento de la calidad.",
+      "Kaoru Ishikawa: herramientas como Pareto y causa-efecto; participación de toda la organización.",
+      "Philip B. Crosby: prevención, cumplimiento de requisitos y cero defectos.",
+      "Armand V. Feigenbaum: Control de Calidad Total y responsabilidad compartida.",
+      "Shigeo Shingo: Poka-yoke, prevención de errores, y Justo a Tiempo."
+    ]
+  },
+  {
+    id:"evolucion", title:"3. Evolución de la Calidad", type:"Dimensión 3 · Línea del tiempo",
+    text:"La evolución histórica muestra cómo el concepto pasa de hacer bien las cosas a un enfoque de prevención, sistemas y mejora continua orientado al cliente.",
+    points:[
+      "Artesanal: satisfacer al cliente y al artesano mediante trabajo bien hecho; producto único.",
+      "Revolución Industrial: producir mucho para satisfacer una gran demanda.",
+      "Segunda Guerra Mundial: eficacia y plazo; garantizar armamento eficaz, en cantidad y momento preciso.",
+      "Posguerra en Japón: hacer las cosas bien a la primera, minimizar costos y ser competitivo.",
+      "Inspección: detectar defectos para evitar que salgan productos defectuosos.",
+      "Aseguramiento de la calidad: sistemas y procedimientos para prevenir errores.",
+      "Administración / calidad total: satisfacción permanente de las expectativas del cliente y mejora continua."
+    ]
+  },
+  {
+    id:"cliente", title:"4. Cliente y Empresa", type:"Relación fundamental",
+    text:"La obtención de la calidad inicia con conocer las necesidades del cliente y analizar posteriormente su satisfacción.",
+    points:[
+      "Cliente: recibe un producto o servicio.",
+      "Empresa: organización cuyo objetivo es producir un bien o servicio.",
+      "Calidad: satisfacción de clientes externos e internos.",
+      "Método: mejora continua.",
+      "Dónde: todos los procesos y actividades.",
+      "Quién: participación de todas las personas.",
+      "Cuándo: siempre."
+    ]
+  },
+  {
+    id:"organizaciones", title:"5. Calidad en las Organizaciones", type:"Aplicación",
+    text:"La calidad requiere integrar todos los sectores. Es una filosofía y forma de vida organizacional basada en compromiso y mejoramiento continuo.",
+    points:[
+      "La calidad debe integrarse en todos los sectores.",
+      "Los cambios son graduales y se apoyan en la mejora continua.",
+      "Actualmente se considera calidad como satisfacción de necesidades, superar expectativas, prevenir defectos y aspirar a la excelencia.",
+      "Cinco niveles: instrumento, sistema, proceso, cultura y liderazgo."
+    ]
+  },
+  {
+    id:"valores", title:"6. Valores Personales", type:"Evidencia de aprendizaje",
+    text:"Los valores son pautas y cualidades morales que orientan interacciones y conductas. El material distingue distintas clases.",
+    points:[
+      "Valores morales: orientan hacia acciones correctas y dignificantes.",
+      "Antivalores: se oponen a los valores, por ejemplo odio, injusticia o mentira.",
+      "Valores infra humanos: placer, fuerza, agilidad y salud.",
+      "Valores humanos infra morales: riqueza, éxito, inteligencia, conocimiento, arte, prestigio y autoridad.",
+      "Instrumentales: acciones empleadas para alcanzar objetivos.",
+      "Terminales: resultados finales o metas que se aspira lograr."
+    ]
+  },
+  {
+    id:"cambio", title:"7. Resistencia al Cambio", type:"Evidencia de aprendizaje",
+    text:"La resistencia al cambio aparece ante nuevas formas de trabajar, rutinas o situaciones inciertas. El material señala causas y estrategias para reducirla.",
+    points:[
+      "Hábitos: apego a rutinas conocidas.",
+      "Equilibrio emocional: influye en la adaptación.",
+      "Miedo a lo desconocido: la incertidumbre puede generar temor.",
+      "Comunicación clara: reduce incertidumbre y permite participar.",
+      "Motivación: reconocimiento y recompensas.",
+      "Buen clima laboral: seguridad, bienestar y colaboración.",
+      "Capacitación: proporciona medios para asumir nuevas tareas."
+    ]
+  }
+];
+
+const flashcards = [
+ ["¿Cuáles son los 7 fundamentos de la gestión de la calidad?","Enfoque sistémico; enfoque basado en procesos; política y objetivos; papel de la Alta Dirección; documentación; evaluación del SGC; mejora continua."],
+ ["Deming — ¿qué debes asociar?","14 puntos y compromiso con la mejora de la calidad."],
+ ["Juran — ¿qué debes asociar?","Planificación, control y mejoramiento de la calidad."],
+ ["Ishikawa — ¿qué debes asociar?","Diagrama de Pareto y diagrama de causa-efecto; participación de toda la organización."],
+ ["Crosby — ¿qué debes asociar?","Cumplimiento de requisitos, prevención y cero defectos."],
+ ["Feigenbaum — ¿qué debes asociar?","Control de Calidad Total y responsabilidad compartida entre áreas."],
+ ["Shingo — ¿qué debes asociar?","Poka-yoke para prevenir errores y Justo a Tiempo."],
+ ["¿Qué busca la mejora continua?","Optimizar y aumentar la satisfacción del cliente."],
+ ["¿Qué es Poka-yoke según el material?","Una técnica para prevenir errores de funcionamiento del sistema."],
+ ["¿Qué significa resistencia al cambio?","Temor o dificultad para adaptarse a nuevas maneras de trabajar, rutinas o situaciones inciertas."],
+ ["¿Cuáles son tres causas de resistencia al cambio?","Hábitos, equilibrio emocional y miedo a lo desconocido."],
+ ["¿Cuáles son cuatro estrategias frente a la resistencia al cambio?","Comunicación clara, motivación, buen clima laboral y capacitación."]
+];
+
+const quizPool = [
+ {q:"¿Qué fundamento se relaciona con identificar y gestionar todos los procesos y sus relaciones?", o:["Valor de la documentación","Enfoque basado en procesos","Papel de la Alta Dirección","Evaluación del SGC"], a:1},
+ {q:"¿Qué gurú se relaciona con Poka-yoke?", o:["Deming","Juran","Shingo","Crosby"], a:2},
+ {q:"¿Qué aportes se asocian con Ishikawa?", o:["14 puntos","Pareto y causa-efecto","Cero defectos","Justo a tiempo"], a:1},
+ {q:"¿Qué triada corresponde a Juran?", o:["Planificación, control y mejoramiento","Calidad, precio y plazo","Diseño, ventas y compras","Motivación, capacitación y clima"], a:0},
+ {q:"¿Cuál era la finalidad principal de la inspección?", o:["Eliminar toda documentación","Evitar la salida de bienes defectuosos","Crear productos únicos","Aumentar la demanda"], a:1},
+ {q:"¿Qué etapa enfatiza hacer las cosas bien a la primera y ser competitivo?", o:["Artesanal","Segunda Guerra Mundial","Posguerra en Japón","Inspección"], a:2},
+ {q:"¿Cuál pertenece a los valores instrumentales?", o:["Resultado final de vida","Acciones usadas para alcanzar objetivos","Producto defectuoso","Miedo a lo desconocido"], a:1},
+ {q:"¿Cuál es una causa de resistencia al cambio?", o:["Pareto","Poka-yoke","Hábitos","Auditoría"], a:2},
+ {q:"¿Cuál es una estrategia para reducir la resistencia al cambio?", o:["Ocultar las razones del cambio","Eliminar la capacitación","Comunicación clara","Evitar participación"], a:2},
+ {q:"¿Qué describe mejor la mejora continua?", o:["Mantener todo igual","Optimizar de manera constante","Inspeccionar solamente al final","Producir sin importar calidad"], a:1},
+ {q:"¿Qué fundamento busca asegurar que el SGC sea evaluado mediante auditorías?", o:["Evaluación de los Sistemas de Gestión de la Calidad","Política y objetivos","Enfoque sistémico","Documentación"], a:0},
+ {q:"¿Qué dice el material sobre la calidad en la organización?", o:["Es responsabilidad de un solo departamento","Solo importa el producto","Es responsabilidad compartida e integral","Solo depende del cliente"], a:2}
+];
+
+let state = JSON.parse(localStorage.getItem("qualityGuideState") || "{}");
+state.correct = state.correct || 0;
+state.answered = state.answered || 0;
+state.wrong = state.wrong || [];
+state.notes = state.notes || "";
+
+const $ = s => document.querySelector(s);
+
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    $("#"+btn.dataset.tab).classList.add("active");
+  });
+});
+
+function renderMap(){
+  $("#mapGrid").innerHTML = topics.map((t,i)=>`
+    <div class="card">
+      <div class="badge">${t.type}</div>
+      <h3>${t.title}</h3>
+      <p>${t.text}</p>
+      <button class="btn secondary" onclick="openTopic('${t.id}')">Estudiar este bloque</button>
+    </div>
+  `).join("");
+}
+function renderTheory(filter=""){
+  const q = filter.toLowerCase();
+  const list = topics.filter(t => (t.title+" "+t.text+" "+t.points.join(" ")).toLowerCase().includes(q));
+  $("#theory").innerHTML = list.map(t=>`
+    <div class="card" style="margin-bottom:14px" id="${t.id}">
+      <div class="badge">${t.type}</div>
+      <h2>${t.title}</h2>
+      <p>${t.text}</p>
+      <ul>${t.points.map(p=>`<li>${p}</li>`).join("")}</ul>
+    </div>
+  `).join("") || '<div class="card">No encontré ese término.</div>';
+}
+function openTopic(id){
+  document.querySelector('[data-tab="teoria"]').click();
+  setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth"}),50);
+}
+$("#search").addEventListener("input", e=>renderTheory(e.target.value));
+
+let fi=0;
+function showFlash(){
+  const [q,a] = flashcards[fi];
+  const f = $("#flashcard");
+  f.classList.remove("revealed");
+  $("#flashQ").textContent=q;
+  $("#flashA").textContent=a;
+  $("#flashCount").textContent=`Tarjeta ${fi+1} de ${flashcards.length}`;
+}
+$("#flashcard").addEventListener("click",()=>$("#flashcard").classList.toggle("revealed"));
+$("#nextFlash").addEventListener("click",()=>{fi=(fi+1)%flashcards.length;showFlash()});
+$("#prevFlash").addEventListener("click",()=>{fi=(fi-1+flashcards.length)%flashcards.length;showFlash()});
+
+let quiz=[];
+let quizIndex=0;
+let quizScore=0;
+
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function startQuiz(){
+  quiz=shuffle(quizPool).slice(0,10);
+  quizIndex=0; quizScore=0; $("#score").innerHTML="";
+  renderQuiz();
+}
+function renderQuiz(){
+  if(quizIndex>=quiz.length){
+    const pct=Math.round(quizScore/quiz.length*100);
+    $("#quizBox").innerHTML=`<div class="note"><strong>Resultado: ${quizScore}/${quiz.length} (${pct}%)</strong><br>${pct>=80?"Muy bien. Ya puedes pasar a preguntas más difíciles.":"Repasa los errores y vuelve a intentarlo."}</div>`;
+    updateProgress();
+    return;
+  }
+  const item=quiz[quizIndex];
+  $("#quizBox").innerHTML=`
+    <div class="small">Pregunta ${quizIndex+1} de ${quiz.length}</div>
+    <p class="quiz-q">${item.q}</p>
+    ${item.o.map((x,i)=>`<button class="option" data-i="${i}">${x}</button>`).join("")}
+  `;
+  document.querySelectorAll(".option").forEach(b=>b.addEventListener("click",()=>{
+    const chosen=Number(b.dataset.i);
+    document.querySelectorAll(".option").forEach(x=>x.disabled=true);
+    if(chosen===item.a){
+      b.classList.add("correct"); quizScore++; state.correct++;
+    }else{
+      b.classList.add("wrong");
+      document.querySelectorAll(".option")[item.a].classList.add("correct");
+      state.wrong.push(item.q);
+    }
+    state.answered++;
+    saveState();
+    setTimeout(()=>{quizIndex++;renderQuiz()},650);
+  }));
+}
+$("#newQuiz").addEventListener("click",startQuiz);
+$("#clearQuiz").addEventListener("click",()=>{state.correct=0;state.answered=0;state.wrong=[];saveState();startQuiz();});
+
+function renderWrong(){
+  const arr=[...new Set(state.wrong)];
+  $("#wrongList").innerHTML = arr.length ? arr.map((x,i)=>`<div class="card" style="margin:8px 0;padding:12px">${i+1}. ${x}</div>`).join("") : "Todavía no hay errores.";
+}
+function updateProgress(){
+  const pct=state.answered ? Math.round((state.correct/state.answered)*100) : 0;
+  $("#bar").style.width=pct+"%";
+  $("#progressText").textContent=`${pct}% de aciertos · ${state.correct} correctas / ${state.answered} respondidas`;
+  renderWrong();
+}
+function saveState(){
+  localStorage.setItem("qualityGuideState",JSON.stringify(state));
+  updateProgress();
+}
+$("#notes").value=state.notes;
+$("#saveNotes").addEventListener("click",()=>{
+  state.notes=$("#notes").value; saveState();
+  alert("Apuntes guardados en este navegador.");
+});
+
+renderMap();
+renderTheory();
+showFlash();
+startQuiz();
+updateProgress();
+</script>
+</body>
+</html>
