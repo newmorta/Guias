@@ -1,0 +1,141 @@
+from pathlib import Path
+
+html = r'''<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guía Interactiva - Desarrollo de Sistemas Web con Bases de Datos</title>
+<style>
+:root{--bg:#09111f;--p:#111d31;--p2:#172842;--t:#eef4ff;--m:#9cafc9;--a:#4d8dff;--g:#2bd3a5;--r:#ff637b;--b:#2a3b5b}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#07101b,#10203a);color:var(--t);font:16px/1.55 system-ui,Segoe UI,Arial}
+header,.wrap{max-width:1150px;margin:auto;padding:25px 20px}.badge{display:inline-block;background:#1d3152;padding:4px 9px;border-radius:99px;font-size:12px}.muted{color:var(--m);font-size:13px}
+h1{font-size:clamp(28px,4vw,46px);margin:.25em 0}.card{background:#111d31e8;border:1px solid var(--b);border-radius:18px;padding:18px;margin-bottom:15px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:15px 0}.tab,.btn,.opt{border:1px solid var(--b);border-radius:11px;padding:10px 13px;background:#17263e;color:var(--t);cursor:pointer}.tab.active,.btn{background:var(--a);border-color:var(--a)}
+.section{display:none}.section.active{display:block}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:15px}
+.progress{height:11px;background:#20304a;border-radius:99px;overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--g))}
+input,textarea{width:100%;background:#0d1829;color:var(--t);border:1px solid var(--b);border-radius:11px;padding:11px;font:inherit}
+.flash{min-height:260px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer}.flashin{width:100%;min-height:260px;border:1px solid var(--b);border-radius:18px;background:linear-gradient(145deg,#172a47,#0d1728);padding:30px;display:flex;align-items:center;justify-content:center}
+.answer{display:none}.revealed .question{display:none}.revealed .answer{display:block}.opt{display:block;width:100%;text-align:left;margin:8px 0}.opt.correct{background:#103b31;border-color:var(--g)}.opt.wrong{background:#3a1720;border-color:var(--r)}
+.note{border-left:4px solid var(--a);padding:12px 14px;background:#101a2c;border-radius:7px}
+code{background:#0b1524;border:1px solid var(--b);padding:2px 5px;border-radius:5px}.footer{text-align:center;color:var(--m);padding:25px}
+</style>
+</head>
+<body>
+<header>
+<div class="badge">UANL · ETAPA 1 · ASP.NET MVC</div>
+<h1>Desarrollo de Sistemas Web con Bases de Datos</h1>
+<p class="muted">Guía interactiva basada en el PDF proporcionado. Enfocada en MVC, estructura del proyecto, Models, Controllers, Views, Razor y los ejercicios.</p>
+</header>
+<div class="wrap">
+<div class="card"><b>Progreso de examen</b><div class="progress" style="margin-top:9px"><div id="bar" class="bar"></div></div><div id="prog" class="muted">0% de aciertos</div></div>
+<div class="tabs">
+<button class="tab active" data-x="map">Mapa</button><button class="tab" data-x="theory">Teoría</button><button class="tab" data-x="flash">Flashcards</button><button class="tab" data-x="quiz">Examen</button><button class="tab" data-x="review">Repaso</button>
+</div>
+
+<section id="map" class="section active"><div id="mapGrid" class="grid"></div></section>
+<section id="theory" class="section"><input id="search" placeholder="Buscar MVC, Model, Controller, View, Razor, carpetas..."><div id="theoryBox" style="margin-top:15px"></div></section>
+<section id="flash" class="section"><div class="card"><h2>Flashcards</h2><p class="muted">Piensa la respuesta y haz clic para revelarla.</p><div id="fc" class="flash"><div class="flashin"><div id="fq" class="question"></div><div id="fa" class="answer"></div></div></div><div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><button id="prev" class="btn">←</button><button id="next" class="btn">→</button></div><div id="fcount" class="muted" style="text-align:center;margin-top:8px"></div></div></section>
+<section id="quiz" class="section"><div class="card"><h2>Examen interactivo</h2><div class="muted">10 preguntas aleatorias por intento.</div><div id="quizBox" style="margin-top:15px"></div><button id="newQuiz" class="btn" style="margin-top:12px">Nuevo examen</button><button id="reset" class="tab" style="margin-top:12px">Reiniciar estadísticas</button></div></section>
+<section id="review" class="section"><div class="grid"><div class="card"><h2>Errores</h2><div id="errors" class="muted"></div></div><div class="card"><h2>Mis apuntes</h2><textarea id="notes" rows="12" placeholder="Escribe aquí lo que te cueste..."></textarea><button id="saveNotes" class="btn" style="margin-top:10px">Guardar</button></div></div></section>
+<div class="footer">Contenido organizado a partir del material del PDF.</div>
+</div>
+
+<script>
+const topics=[
+["aspnet","1. ASP.NET y MVC","Fundamentos",["ASP.NET se presenta como framework open source multiplataforma de Microsoft.","MVC separa una aplicación en Modelo, Vista y Controlador.","El material menciona escalabilidad, mantenimiento, seguridad, manejo de errores y enrutamiento."]],
+["mvc","2. Modelo, Vista y Controlador","Concepto central",["Model: estructura de datos y lógica empresarial; accede y manipula datos.","View: interfaz de usuario; usa HTML y puede incorporar C#/VB.NET, JavaScript y CSS.","Controller: intermediario; recibe solicitudes HTTP, coordina Model y View y maneja acciones."]],
+["folders","3. Carpetas del proyecto","Estructura",["App_Data: datos y bases de datos locales.","App_Start: configuración e inicialización, como RouteConfig.cs.","Content: CSS, imágenes y fuentes.","Controllers: controladores y solicitudes HTTP.","Models: clases de datos y lógica empresarial.","Scripts: JavaScript.","Views: HTML con Razor/ASPX y presentación."]],
+["layout","4. Views, Index y _Layout","Ejercicio",["Index.cshtml corresponde normalmente a la acción Index.","_Layout.cshtml define un diseño base común.","ViewBag.Title puede establecer el título.","About.cshtml y Contact.cshtml pueden personalizarse."]],
+["eiao","5. Ejercicio D3_Sitio_EIAO","Dimensión 3",["Crear proyecto ASP.NET MVC y personalizar páginas.","Agregar carpeta Fotos y al menos 4 fotografías.","Editar _Layout.cshtml, Index.cshtml, About.cshtml y Contact.cshtml.","Contact puede incluir un mapa mediante iframe.","Index debe establecerse como página de inicio.","La evidencia pide más diseño, fotos y textos distintos a los ejemplos."]],
+["model","6. Models","Ejercicio 3 · Parte 1",["Models organiza las clases que representan datos.","Ejemplo: Alumno.","Campos del ejemplo: idAlumno, nombreAlumno, apellido y edad.","La clase define la estructura de los datos con los que trabajará la aplicación."]],
+["controller","7. Controllers y acciones","Ejercicio 3 · Parte 2",["Controllers contiene clases que manejan solicitudes HTTP.","Las acciones son métodos públicos como Index, Create, Edit y Delete.","Se mencionan GET, POST, PUT y DELETE.","El router determina controlador y acción.","El Controller coordina datos del Model y su presentación en la View."]],
+["index","8. Index y RecuperaAlumnos()","Ejercicio 3 · Parte 2",["RecuperaAlumnos() devuelve una List<Alumno>.","En el ejercicio se crean alumnos de ejemplo.","Index obtiene, ordena por idAlumno y selecciona los alumnos.","Luego devuelve View(Alumnos)."]],
+["views","9. Views y Razor","Ejercicio 3 · Parte 3",["Views define la interfaz.","Existen subcarpetas relacionadas con cada Controller.","HomeController se relaciona con Views/Home.","Las vistas suelen coincidir con el nombre de la acción.","Razor permite mostrar datos dinámicos; también se mencionan foreach, if y else.","Layouts y vistas parciales permiten reutilizar presentación."]],
+["scaffold","10. Scaffolding","Ejercicio 3 · Parte 3",["Se crea una View desde la acción Index.","Se selecciona plantilla List y modelo Alumno.","Puede generarse @model IEnumerable<ModeloMVC.Models.Alumno>.","Aparecen DisplayNameFor, DisplayFor y ActionLink.","ActionLink se usa en el ejemplo para Edit, Details y Delete."]]
+];
+
+const flash=[
+["¿Qué significa MVC?","Modelo, Vista y Controlador."],
+["¿Qué hace Model?","Representa estructura de datos y lógica empresarial y puede acceder/manipular datos."],
+["¿Qué hace View?","Presenta la interfaz y muestra datos al usuario."],
+["¿Qué hace Controller?","Recibe solicitudes HTTP y coordina Model y View."],
+["¿Para qué sirve App_Data?","Para almacenar datos, incluidas bases de datos locales."],
+["¿Para qué sirve App_Start?","Para archivos de configuración usados al iniciar/configurar la aplicación."],
+["¿Qué contiene Content?","CSS, imágenes y fuentes."],
+["¿Qué contiene Scripts?","Archivos JavaScript y bibliotecas/scripts usados por la aplicación."],
+["¿Qué contiene Views?","Interfaces de usuario, con HTML y sintaxis Razor/ASPX."],
+["¿Qué es _Layout.cshtml?","Diseño base común para múltiples vistas."],
+["¿Qué es una acción?","Un método público del Controller que corresponde a una operación de la aplicación."],
+["¿Qué devuelve RecuperaAlumnos()?","Una List<Alumno> en el ejercicio."],
+["¿Qué hace return View(Alumnos)?","Pasa los alumnos del Controller a la View."],
+["¿Qué es scaffolding?","Un asistente que genera una vista desde un modelo y plantilla."],
+["¿Qué helpers aparecen en la vista de lista?","DisplayNameFor, DisplayFor y ActionLink."]
+];
+
+const qs=[
+["¿Qué componente representa los datos y la lógica empresarial?",["View","Model","Controller","Layout"],1],
+["¿Qué componente maneja solicitudes HTTP?",["Model","Content","Controller","View"],2],
+["¿Qué carpeta contiene CSS, imágenes y fuentes?",["App_Data","Content","Views","Scripts"],1],
+["¿Qué carpeta contiene RouteConfig.cs según el material?",["Models","Controllers","App_Start","Content"],2],
+["¿Cuál carpeta contiene clases de modelos?",["Models","Views","App_Data","Scripts"],0],
+["¿Qué función cumple _Layout.cshtml?",["Guardar datos","Definir estructura común","Procesar HTTP","Crear Models"],1],
+["¿Qué vista corresponde normalmente a HomeController.Index?",["Views/Home/Index.cshtml","Views/Index.cs","Home/Controller.cs","Shared/Index.cs"],0],
+["¿Cuál es una acción típica?",["Index","Models","App_Data","Razor"],0],
+["¿Qué solicitudes HTTP se mencionan?",["GET, POST, PUT y DELETE","CSS, JS, HTML","MVC, Razor y C#","SQL, XML y JSON"],0],
+["¿Qué devuelve RecuperaAlumnos()?",["ViewResult","List<Alumno>","ActionLink","IEnumerable<View>"],1],
+["¿Qué hace Index con los alumnos en el ejemplo?",["Los elimina","Los ordena por idAlumno y selecciona","Los convierte en fotos","Los manda a App_Start"],1],
+["¿Qué representa @model IEnumerable<ModeloMVC.Models.Alumno>?",["La configuración","El modelo esperado por la View","Una ruta","Un CSS"],1],
+["¿Qué helper muestra el nombre de una propiedad?",["DisplayNameFor","DisplayFor","ActionLink","ViewBag"],0],
+["¿Qué helper muestra el valor de una propiedad?",["DisplayNameFor","DisplayFor","RouteConfig","foreach"],1],
+["¿Qué helper aparece para Edit, Details y Delete?",["ActionLink","DisplayFor","ViewBag","App_Data"],0],
+["¿Para qué sirven layouts y vistas parciales?",["Crear BD","Reutilizar presentación","Eliminar Controllers","Cambiar de lenguaje"],1],
+["En el ejercicio EIAO, ¿dónde van las fotos?",["Models","Fotos","Controllers","App_Start"],1],
+["¿Qué pide la evidencia del ejercicio EIAO?",["Solo F5","Más diseño, fotos y textos diferentes","Borrar Views","Crear otra BD"],1]
+];
+
+const $=s=>document.querySelector(s);
+let S=JSON.parse(localStorage.getItem("webDbGuide2")||"{}");
+S.ok=S.ok||0;S.ans=S.ans||0;S.err=S.err||[];S.notes=S.notes||"";
+
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+ if(!b.dataset.x)return;
+ document.querySelectorAll(".tab[data-x]").forEach(x=>x.classList.remove("active"));
+ document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+ b.classList.add("active");$("#"+b.dataset.x).classList.add("active");
+});
+
+function renderMap(){ $("#mapGrid").innerHTML=topics.map(t=>`<div class="card"><div class="badge">${t[2]}</div><h3>${t[1]}</h3><ul>${t[3].map(x=>`<li>${x}</li>`).join("")}</ul><button class="btn" onclick="go('${t[0]}')">Estudiar</button></div>`).join("") }
+function renderTheory(f=""){const q=f.toLowerCase();const a=topics.filter(t=>(t[1]+" "+t[2]+" "+t[3].join(" ")).toLowerCase().includes(q));$("#theoryBox").innerHTML=a.map(t=>`<div id="${t[0]}" class="card"><div class="badge">${t[2]}</div><h2>${t[1]}</h2><ul>${t[3].map(x=>`<li>${x}</li>`).join("")}</ul></div>`).join("")||'<div class="card">No encontrado.</div>'}
+function go(id){document.querySelector('[data-x="theory"]').click();setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth"}),30)}
+$("#search").oninput=e=>renderTheory(e.target.value);
+
+let fi=0;
+function showF(){ $("#fq").textContent=flash[fi][0];$("#fa").textContent=flash[fi][1];$("#fc").classList.remove("revealed");$("#fcount").textContent=`${fi+1}/${flash.length}` }
+$("#fc").onclick=()=>$("#fc").classList.toggle("revealed");$("#next").onclick=()=>{fi=(fi+1)%flash.length;showF()};$("#prev").onclick=()=>{fi=(fi-1+flash.length)%flash.length;showF()};
+
+let test=[],i=0,score=0;
+function sh(a){return [...a].sort(()=>Math.random()-.5)}
+function newTest(){test=sh(qs).slice(0,10);i=0;score=0;draw()}
+function draw(){
+ if(i>=test.length){$("#quizBox").innerHTML=`<div class="note"><b>Resultado: ${score}/${test.length} (${Math.round(score/test.length*100)}%)</b><br>${score>=8?"Muy bien.":"Repasa los errores y vuelve a intentar."}</div>`;update();return}
+ const x=test[i];$("#quizBox").innerHTML=`<div class="muted">Pregunta ${i+1} de ${test.length}</div><h3>${x[0]}</h3>${x[1].map((o,k)=>`<button class="opt" data-k="${k}">${o}</button>`).join("")}`;
+ document.querySelectorAll(".opt").forEach(btn=>btn.onclick=()=>{
+  const k=+btn.dataset.k;document.querySelectorAll(".opt").forEach(z=>z.disabled=true);
+  if(k===x[2]){btn.classList.add("correct");score++;S.ok++}else{btn.classList.add("wrong");document.querySelectorAll(".opt")[x[2]].classList.add("correct");S.err.push(x[0])}
+  S.ans++;save();setTimeout(()=>{i++;draw()},600);
+ })
+}
+$("#newQuiz").onclick=newTest;$("#reset").onclick=()=>{S.ok=0;S.ans=0;S.err=[];save();newTest()};
+function update(){let p=S.ans?Math.round(S.ok/S.ans*100):0;$("#bar").style.width=p+"%";$("#prog").textContent=`${p}% de aciertos · ${S.ok} correctas / ${S.ans} respondidas`;let e=[...new Set(S.err)];$("#errors").innerHTML=e.length?e.map((x,n)=>`<div class="card" style="padding:10px">${n+1}. ${x}</div>`).join(""):"No hay errores todavía."}
+function save(){localStorage.setItem("webDbGuide2",JSON.stringify(S));update()}
+$("#notes").value=S.notes;$("#saveNotes").onclick=()=>{S.notes=$("#notes").value;save();alert("Guardado.")};
+
+renderMap();renderTheory();showF();newTest();update();
+</script>
+</body>
+</html>'''
+
+path = Path("/mnt/data/guia_interactiva_desarrollo_web_bd.html")
+path.write_text(html, encoding="utf-8")
+print(path)
