@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guía Interactiva — Desarrollo de Páginas Web Dinámicas</title>
+<style>
+:root{--bg:#07111f;--panel:#101d31;--panel2:#172944;--text:#eef5ff;--muted:#9fb0c7;--a:#5b8cff;--g:#2bd3a5;--r:#ff647c;--b:#2a3d5c}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#06101b,#12233d);color:var(--text);font:16px/1.55 system-ui,Segoe UI,Arial}
+header,.wrap{max-width:1180px;margin:auto;padding:26px 20px}h1{font-size:clamp(29px,4vw,47px);margin:.2em 0}.muted{color:var(--muted);font-size:13px}
+.badge{display:inline-block;background:#1c2d4b;padding:4px 9px;border-radius:99px;font-size:12px}
+.card{background:#101d31ee;border:1px solid var(--b);border-radius:18px;padding:18px;margin-bottom:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:15px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab,.btn,.opt{border:1px solid var(--b);border-radius:11px;padding:10px 13px;background:#182943;color:var(--text);cursor:pointer}.tab.active,.btn{background:var(--a);border-color:var(--a)}
+.section{display:none}.section.active{display:block}.progress{height:11px;background:#20304a;border-radius:99px;overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--g));transition:.3s}
+input,textarea,select{width:100%;background:#0d1728;color:var(--text);border:1px solid var(--b);border-radius:11px;padding:11px;font:inherit}
+.flash{min-height:280px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer}.flashin{width:100%;min-height:280px;border:1px solid var(--b);border-radius:18px;background:linear-gradient(145deg,#1a2b49,#0d1829);display:flex;align-items:center;justify-content:center;padding:30px}
+.answer{display:none}.revealed .question{display:none}.revealed .answer{display:block}.opt{display:block;width:100%;text-align:left;margin:8px 0}.opt.correct{background:#103b31;border-color:var(--g)}.opt.wrong{background:#3b1720;border-color:var(--r)}
+.note{border-left:4px solid var(--a);padding:12px 14px;background:#101a2c;border-radius:8px}.kpi{font-size:30px;font-weight:800}.footer{text-align:center;color:var(--muted);padding:26px}
+</style>
+</head>
+<body>
+<header>
+<div class="badge">UANL · ETAPA 1 · ANGULAR</div>
+<h1>Desarrollo de Páginas Web Dinámicas</h1>
+<p class="muted">Guía interactiva construida a partir del libro proporcionado. Prioriza definiciones, diferencias, componentes, comandos, estructura y conceptos que el material desarrolla de forma explícita.</p>
+</header>
+
+<div class="wrap">
+<div class="card"><b>Rendimiento</b><div class="progress" style="margin-top:9px"><div id="bar" class="bar"></div></div><div id="overall" class="muted">0% de aciertos</div></div>
+<div class="tabs">
+<button class="tab active" data-x="map">Mapa inverso</button><button class="tab" data-x="theory">Teoría</button><button class="tab" data-x="flash">Flashcards</button><button class="tab" data-x="exam">Examen</button><button class="tab" data-x="review">Repaso</button>
+</div>
+
+<section id="map" class="section active">
+<div class="card"><h2>Prioridades</h2><p class="muted">Estimación de cobertura basada en cuánto se desarrolla cada bloque y en los conceptos que el material enumera/ejemplifica. No garantiza preguntas exactas.</p><div id="priority"></div></div>
+<div id="mapGrid" class="grid"></div>
+</section>
+
+<section id="theory">
+<input id="search" placeholder="Buscar JavaScript, Node, TypeScript, Angular, CLI, componente, plantilla..."><div id="theoryBox" style="margin-top:15px"></div>
+</section>
+
+<section id="flash">
+<div class="card"><h2>Flashcards</h2><p class="muted">Contesta de memoria y toca la tarjeta para comprobar.</p>
+<div id="fc" class="flash"><div class="flashin"><div id="fq" class="question"></div><div id="fa" class="answer"></div></div></div>
+<div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><button id="prev" class="btn">←</button><button id="next" class="btn">→</button></div>
+<div id="fcount" class="muted" style="text-align:center;margin-top:8px"></div></div>
+</section>
+
+<section id="exam">
+<div class="card">
+<h2>Simulador del examen</h2>
+<div class="grid">
+<div><label class="muted">Preguntas</label><select id="numQ"><option value="20">20</option><option value="25">25</option></select></div>
+<div><label class="muted">Modo</label><select id="mode"><option value="adaptive">Adaptativo</option><option value="balanced">Balanceado</option><option value="hard">Difícil</option></select></div>
+</div>
+<button id="start" class="btn" style="margin-top:12px">Comenzar examen</button>
+<div id="examBox" style="margin-top:15px"></div>
+</div>
+</section>
+
+<section id="review">
+<div class="grid">
+<div class="card"><h2>Errores</h2><div id="errors" class="muted"></div></div>
+<div class="card"><h2>Mis apuntes</h2><textarea id="notes" rows="12" placeholder="Escribe tus propias reglas para recordar..."></textarea><button id="saveNotes" class="btn" style="margin-top:10px">Guardar</button></div>
+</div>
+</section>
+<div class="footer">Contenido basado en las 16 páginas del material proporcionado.</div>
+</div>
+
+<script>
+const T=[
+{id:"js",title:"1. JavaScript",p:96,type:"🔥 Muy alta",intro:"JavaScript/ECMAScript evolucionó de scripts pequeños en navegadores a una herramienta para aplicaciones grandes y también servidores.",pts:["Comenzó como lenguaje simple para navegadores.","Los navegadores optimizaron sus motores y ampliaron sus APIs.","Actualmente puede usarse fuera del navegador, por ejemplo con Node.js.","El material destaca su naturaleza de 'ejecutar en cualquier lugar'."]},
+{id:"node",title:"2. Node.js",p:98,type:"🔥 Muy alta",intro:"Entorno de ejecución de JavaScript basado en el motor V8 de Google Chrome que permite ejecutar JS en el servidor.",pts:["Desarrollado por Ryan Dahl en 2009, según el material.","Es asíncrono y orientado a eventos.","Maneja operaciones de entrada/salida sin bloquear el hilo principal.","Es escalable y puede manejar muchas conexiones simultáneas.","Usa npm como gestor de paquetes.","En Angular permite usar Angular CLI, gestionar dependencias y levantar servidores de desarrollo."]},
+{id:"ts",title:"3. TypeScript",p:100,type:"🔥 Máxima",intro:"TypeScript agrega a JavaScript un sistema de tipos y realiza verificación estática.",pts:["Puede detectar ciertos errores antes de ejecutar el programa.","Incluye todas las funciones de JavaScript y añade el sistema de tipos.","Puede inferir tipos automáticamente.","Permite definir tipos explícitos mediante interfaces.","Ayuda a reducir comportamientos inesperados y errores.","Tipos mencionados: string, number, boolean, array, any, null, undefined, object, function, tuple, enum, void y never."]},
+{id:"types",title:"4. Tipado de variables",p:97,type:"🔥 Muy alta",intro:"El tipado en TypeScript se utiliza para asegurar el tipo y prevenir errores durante la compilación.",pts:["string → texto.","number → valores numéricos y decimales.","boolean → true o false.","array → colección de elementos del tipo especificado.","any → permite cualquier tipo; el material señala usarlo con precaución."]},
+{id:"angular",title:"5. ¿Qué es Angular?",p:100,type:"🔥 Máxima",intro:"Angular es una plataforma de desarrollo construida sobre TypeScript.",pts:["Framework basado en componentes para aplicaciones web escalables.","Incluye bibliotecas para enrutamiento, formularios y comunicación cliente-servidor.","Incluye herramientas para desarrollar, crear, probar y actualizar código."]},
+{id:"components",title:"6. Componentes en Angular",p:99,type:"🔥 Máxima",intro:"Los componentes son el bloque de construcción fundamental de las aplicaciones Angular.",pts:["Cada componente tiene una plantilla HTML.","Tiene una clase TypeScript que define el comportamiento.","Tiene un selector CSS para usar el componente en una plantilla.","Puede tener estilos CSS propios.","La arquitectura busca mantener responsabilidades claras, facilitar mantenimiento y escalabilidad."]},
+{id:"templates",title:"7. Plantillas",p:96,type:"🔥 Muy alta",intro:"Una plantilla Angular es una sección de HTML que forma parte de la página mostrada por el navegador.",pts:["Casi toda la sintaxis HTML es válida dentro de una plantilla.","Puede incluir funcionalidad adicional de Angular.","app.component.html es la plantilla predeterminada al generar una aplicación con Angular CLI.","No necesita incluir html, body o base porque es una parte de la página."]},
+{id:"advantages",title:"8. Ventajas y desventajas",p:84,type:"🟠 Alta",intro:"El material enumera ventajas y algunas desventajas de Angular.",pts:["Ventajas: multiplataforma, velocidad/rendimiento, productividad y arquitectura basada en componentes.","Angular CLI permite construir rápidamente y agregar componentes, servicios y pruebas.","Lazy Load carga solo el código requerido; Angular Universal usa renderizado del lado del servidor para optimizar SEO.","Desventajas: curva de aprendizaje, complejidad, SEO/rastreadores en ciertos escenarios y actualizaciones frecuentes de versiones."]},
+{id:"install",title:"9. Entorno de trabajo y CLI",p:98,type:"🔥 Muy alta",intro:"El material dedica varias páginas a instalar Node.js, npm, Angular CLI y crear/ejecutar un proyecto.",pts:["Primero se verifican Node.js y npm con node -v y npm -v.","La CLI se instala con npm install -g @angular/cli.","La CLI ayuda a crear, desarrollar y mantener aplicaciones Angular.","Para crear proyecto: ng new nombre-del-proyecto --standalone=false.","Para entrar al proyecto: cd nombre-del-proyecto.","Para visualizarlo localmente: ng serve."]},
+{id:"project",title:"10. Estructura inicial del proyecto",p:91,type:"🔥 Alta",intro:"El libro muestra los archivos generados al crear un proyecto Angular.",pts:["angular.json, package.json, README.md y tsconfig.json.","src/main.ts e index.html.","src/styles.css.","src/app/app.component.html, app.component.ts, app.component.css y app.component.spec.ts.","app.config.ts y app.routes.ts también aparecen en la estructura mostrada."]}
+];
+
+const F=[
+["¿En qué se basa Node.js?","En el motor V8 de Google Chrome."],
+["Node.js — característica clave","Asíncrono y orientado a eventos; puede realizar I/O sin bloquear el hilo principal."],
+["¿Para qué sirve npm?","Para instalar y gestionar paquetes/dependencias."],
+["¿Qué agrega TypeScript a JavaScript?","Un sistema de tipos con verificación estática."],
+["¿Qué es verificación estática?","Detección de errores en el código sin ejecutarlo."],
+["¿Qué hace TypeScript con muchos tipos automáticamente?","Los infiere a partir de los valores y el contexto."],
+["¿Qué es una interface en TypeScript?","Una forma de describir explícitamente la estructura/tipos de un objeto."],
+["string","Representa texto."],
+["number","Representa valores numéricos, incluidos decimales."],
+["boolean","Solo puede representar true o false."],
+["array","Colección de elementos del tipo especificado."],
+["any","Permite cualquier tipo y debe usarse con precaución porque reduce la verificación estática."],
+["¿Qué es Angular?","Una plataforma de desarrollo construida sobre TypeScript."],
+["¿Cuál es el bloque de construcción fundamental de Angular?","El componente."],
+["Partes principales de un componente","Plantilla HTML, clase TypeScript, selector CSS y opcionalmente estilos CSS."],
+["¿Qué es una plantilla Angular?","Una sección de HTML que forma parte de la página mostrada en el navegador."],
+["¿Cuál es la plantilla predeterminada mostrada en el material?","app.component.html."],
+["¿Qué instala npm install -g @angular/cli?","La CLI de Angular."],
+["¿Qué hace ng new?","Crea un nuevo proyecto Angular."],
+["¿Qué hace ng serve?","Levanta un servidor local para visualizar la aplicación y probar cambios."]
+];
+
+const Q=[
+["js","¿Cómo se conoce también JavaScript en el material?",["ECMAScript","NodeScript","AngularScript","TypeCompiler"],0],
+["js","¿Qué permitió que JavaScript evolucionara hacia aplicaciones grandes?",["Eliminar APIs","Optimización de motores y ampliación de APIs","Usarlo solo en HTML","Quitar los navegadores"],1],
+["node","¿Qué es Node.js?",["Un navegador","Un entorno de ejecución de JavaScript basado en V8","Un lenguaje distinto de JS","Una base de datos"],1],
+["node","¿Cuál es una característica de Node.js?",["Bloqueo de I/O por diseño","Asíncrono y orientado a eventos","Solo funciona en Windows","No utiliza paquetes"],1],
+["node","¿Qué gestor de paquetes usa Node.js?",["pip","npm","composer","gem"],1],
+["node","Según el material, ¿para qué se usa Node.js en Angular?",["Solo CSS","Angular CLI, dependencias y servidores de desarrollo","Solo bases de datos","Solo HTML"],1],
+["ts","¿Qué es la verificación estática?",["Ejecutar el programa","Detectar errores sin ejecutar el código","Cambiar CSS","Instalar npm"],1],
+["ts","¿Qué añade TypeScript a JavaScript?",["Un sistema de tipos","Un navegador","Una base de datos","Un servidor HTTP obligatorio"],0],
+["ts","¿Qué puede hacer TypeScript automáticamente?",["Inferir tipos en muchos casos","Eliminar interfaces","Convertir todo a boolean","Desactivar errores"],0],
+["ts","¿Para qué sirve una interface?",["Describir explícitamente la forma/tipos de un objeto","Levantar el servidor","Instalar Angular","Crear CSS"],0],
+["types","¿Qué tipo representa texto?",["number","string","boolean","array"],1],
+["types","¿Qué tipo representa true o false?",["string","number","boolean","any"],2],
+["types","¿Qué tipo permite una colección de elementos?",["array","void","never","boolean"],0],
+["types","¿Por qué usar any con precaución?",["Porque aumenta la verificación","Porque reduce la verificación de tipos estáticos","Porque solo acepta texto","Porque no compila"],1],
+["angular","¿Sobre qué lenguaje está construida la plataforma Angular?",["Java","TypeScript","Python","PHP"],1],
+["angular","¿Qué describe mejor Angular?",["Solo una librería CSS","Plataforma basada en componentes para aplicaciones web escalables","Base de datos","Servidor de archivos"],1],
+["components","¿Cuál es el bloque de construcción fundamental de Angular?",["La carpeta","El componente","npm","El navegador"],1],
+["components","¿Cuál NO es una parte indicada de un componente?",["Plantilla HTML","Clase TypeScript","Selector CSS","Base de datos"],3],
+["templates","¿Cuál es la plantilla predeterminada citada en el material?",["main.ts","app.component.html","index.ts","angular.json"],1],
+["templates","¿Qué NO es necesario incluir en una plantilla Angular?",["HTML de la sección","body","Contenido dinámico","Etiquetas internas"],1],
+["advantages","¿Cuál es una ventaja de Angular según el libro?",["Arquitectura basada en componentes","No necesita herramientas","Solo sirve en un sistema operativo","No permite reutilización"],0],
+["advantages","¿Qué hace Lazy Load?",["Carga todo al inicio","Carga solo el código requerido para mostrar la solicitud","Elimina CSS","Instala npm"],1],
+["advantages","¿Qué usa Angular Universal según el material?",["Renderizado del lado del servidor","Solo renderizado de consola","Una base de datos","TypeScript estático"],0],
+["install","¿Qué comando verifica Node.js?",["node -v","node install","ng node","npm node"],0],
+["install","¿Qué comando verifica npm?",["npm -v","npm check","ng npm","npm node"],0],
+["install","¿Qué comando instala Angular CLI?",["npm install -g @angular/cli","ng install angular","npm angular new","node install cli"],0],
+["install","¿Qué comando crea un proyecto con la opción mostrada en el material?",["ng new nombre-del-proyecto --standalone=false","ng create project","npm new angular","angular new"],0],
+["install","¿Qué comando entra a la carpeta del proyecto?",["cd nombre-del-proyecto","go nombre-del-proyecto","npm cd","ng open"],0],
+["install","¿Qué comando levanta el servidor local?",["ng serve","npm run web","ng local","node angular"],0],
+["project","¿Cuál archivo aparece como configuración del proyecto?",["angular.json","index.css","server.html","component.db"],0]
+];
+
+let S=JSON.parse(localStorage.getItem("dynamicPagesGuide")||"{}");
+S.ok=S.ok||0;S.ans=S.ans||0;S.err=S.err||[];S.topic=S.topic||{};S.notes=S.notes||"";
+const $=s=>document.querySelector(s);
+
+document.querySelectorAll(".tab[data-x]").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".tab[data-x]").forEach(x=>x.classList.remove("active"));
+ document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+ b.classList.add("active");$("#"+b.dataset.x).classList.add("active");
+});
+
+function acc(id){let x=S.topic[id]||{ok:0,total:0};return x.total?Math.round(x.ok/x.total*100):null}
+function renderMap(){
+ let a=[...T].sort((x,y)=>y.p-x.p);
+ $("#priority").innerHTML=a.map((t,i)=>{let z=acc(t.id);return `<div class="card" style="margin:8px 0;padding:11px"><div style="display:flex;justify-content:space-between;gap:8px"><b>${i+1}. ${t.title}</b><span>${t.p}% cobertura · ${z===null?"sin datos":z+"% dominio"}</span></div><div class="progress" style="margin-top:7px"><div class="bar" style="width:${z||0}%"></div></div></div>`}).join("");
+ $("#mapGrid").innerHTML=T.map(t=>`<div class="card"><div class="badge">${t.type}</div><h3>${t.title}</h3><p>${t.intro}</p><ul>${t.pts.map(x=>`<li>${x}</li>`).join("")}</ul><button class="btn" onclick="go('${t.id}')">Estudiar</button></div>`).join("");
+}
+function renderTheory(f=""){
+ let q=f.toLowerCase();let a=T.filter(t=>(t.title+t.intro+t.pts.join(" ")).toLowerCase().includes(q));
+ $("#theoryBox").innerHTML=a.map(t=>`<div id="${t.id}" class="card"><div class="badge">${t.type} · ${t.p}% cobertura</div><h2>${t.title}</h2><p>${t.intro}</p><ul>${t.pts.map(x=>`<li>${x}</li>`).join("")}</ul></div>`).join("")||'<div class="card">No encontrado.</div>';
+}
+function go(id){document.querySelector('[data-x="theory"]').click();setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth"}),40)}
+$("#search").oninput=e=>renderTheory(e.target.value);
+
+let fi=0;
+function flash(){ $("#fq").textContent=F[fi][0];$("#fa").textContent=F[fi][1];$("#fc").classList.remove("revealed");$("#fcount").textContent=`${fi+1}/${F.length}` }
+$("#fc").onclick=()=>$("#fc").classList.toggle("revealed");
+$("#next").onclick=()=>{fi=(fi+1)%F.length;flash()};$("#prev").onclick=()=>{fi=(fi-1+F.length)%F.length;flash()};
+
+let exam=[],ei=0,score=0;
+function w(x,mode){let a=acc(x[0]);if(mode==="balanced")return 1;if(mode==="hard")return 2;if(a===null)return 3;return 1+(100-a)/25}
+function sample(n,mode){
+ let p=[...Q],o=[];
+ while(p.length&&o.length<n){
+  let total=p.reduce((s,x)=>s+w(x,mode),0),r=Math.random()*total,j=0;
+  for(;j<p.length;j++){r-=w(p[j],mode);if(r<=0)break}
+  o.push(p[j]);p.splice(j,1);
+ }
+ return o;
+}
+function start(){exam=sample(+$("#numQ").value,$("#mode").value);ei=0;score=0;draw()}
+function draw(){
+ if(ei>=exam.length){
+  let pct=Math.round(score/exam.length*100);
+  $("#examBox").innerHTML=`<div class="note"><div class="kpi">${score}/${exam.length}</div><b>${pct}% de aciertos</b><br>${pct>=90?"Dominio excelente.":pct>=80?"Buen nivel; refuerza los errores.":"Haz otra ronda adaptativa enfocada en tus fallos."}</div><button class="btn" style="margin-top:10px" onclick="start()">Repetir</button>`;
+  renderMap();update();return;
+ }
+ let x=exam[ei];
+ $("#examBox").innerHTML=`<div class="muted">Pregunta ${ei+1} de ${exam.length}</div><h3>${x[1]}</h3>${x[2].map((o,k)=>`<button class="opt" data-k="${k}">${o}</button>`).join("")}`;
+ document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+  let k=+b.dataset.k;document.querySelectorAll(".opt").forEach(z=>z.disabled=true);
+  S.topic[x[0]]=S.topic[x[0]]||{ok:0,total:0};S.topic[x[0]].total++;
+  if(k===x[3]){b.classList.add("correct");score++;S.ok++;S.topic[x[0]].ok++}
+  else{b.classList.add("wrong");document.querySelectorAll(".opt")[x[3]].classList.add("correct");S.err.push({q:x[1],t:x[0]})}
+  S.ans++;save();setTimeout(()=>{ei++;draw()},550)
+ });
+}
+$("#start").onclick=start;
+function update(){
+ let p=S.ans?Math.round(S.ok/S.ans*100):0;$("#bar").style.width=p+"%";$("#overall").textContent=`${p}% de aciertos · ${S.ok} correctas / ${S.ans} respondidas`;
+ let a=[],seen=new Set;[...S.err].reverse().forEach(e=>{if(!seen.has(e.q)){seen.add(e.q);a.push(e)}});
+ $("#errors").innerHTML=a.length?a.map((e,i)=>`<div class="card" style="padding:10px;margin:8px 0"><b>${i+1}.</b> ${e.q}<div class="muted">${T.find(t=>t.id===e.t)?.title||e.t}</div></div>`).join(""):"Todavía no hay errores.";
+}
+function save(){localStorage.setItem("dynamicPagesGuide",JSON.stringify(S));update()}
+$("#notes").value=S.notes;$("#saveNotes").onclick=()=>{S.notes=$("#notes").value;save();alert("Apuntes guardados.")};
+renderMap();renderTheory();flash();update();
+</script>
+</body></html>
