@@ -1,0 +1,365 @@
+from pathlib import Path
+
+html = r'''<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guía de Estudio — Introducción a las Ciencias Sociales</title>
+<style>
+:root{
+  --bg:#07101b;--panel:#101b2c;--panel2:#172640;--text:#eef5ff;--muted:#9fb0c8;
+  --accent:#7b61ff;--good:#29d6a3;--bad:#ff637b;--border:#2a3b59
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#06101a,#111d34 60%,#081120);
+color:var(--text);font:16px/1.55 system-ui,Segoe UI,Arial}
+header,.wrap{max-width:1180px;margin:auto;padding:26px 20px}
+h1{font-size:clamp(28px,4vw,46px);margin:.2em 0}
+h2{margin-top:.2em}.muted{color:var(--muted);font-size:13px}
+.badge{display:inline-block;background:#1d2b49;padding:4px 9px;border-radius:99px;font-size:12px}
+.card{background:#101b2cf0;border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:15px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:15px 0}
+.tab,.btn,.opt{border:1px solid var(--border);border-radius:11px;padding:10px 14px;background:#182843;color:var(--text);cursor:pointer}
+.tab.active,.btn{background:var(--accent);border-color:var(--accent)}
+.section{display:none}.section.active{display:block}
+.progress{height:11px;background:#20304b;border-radius:99px;overflow:hidden}
+.bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--good));transition:.3s}
+.flash{min-height:280px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer}
+.flashin{width:100%;min-height:280px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(145deg,#192b49,#0d182a);padding:30px;display:flex;align-items:center;justify-content:center}
+.answer{display:none}.revealed .question{display:none}.revealed .answer{display:block}
+.opt{display:block;width:100%;text-align:left;margin:8px 0}.opt.correct{background:#103b30;border-color:var(--good)}
+.opt.wrong{background:#3a1720;border-color:var(--bad)}
+.note{border-left:4px solid var(--accent);padding:12px 14px;background:#101a2c;border-radius:8px}
+input,textarea,select{width:100%;background:#0d1728;color:var(--text);border:1px solid var(--border);border-radius:11px;padding:11px;font:inherit}
+select{cursor:pointer}
+.kpi{font-size:30px;font-weight:800}
+.topicScore{display:flex;justify-content:space-between;gap:10px}
+.footer{text-align:center;color:var(--muted);padding:25px}
+</style>
+</head>
+<body>
+<header>
+  <div class="badge">UANL · ETAPA 1 · GUÍA DE ESTUDIO</div>
+  <h1>Introducción a las Ciencias Sociales</h1>
+  <p class="muted">Ingeniería inversa del material: priorizar conceptos que el libro destaca mediante definiciones, tablas, comparaciones, actividades y pensadores. No predice literalmente el examen; optimiza la cobertura del contenido evaluable.</p>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <b>Rendimiento actual</b>
+    <div class="progress" style="margin-top:9px"><div id="bar" class="bar"></div></div>
+    <div id="overall" class="muted">0% de aciertos</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-x="map">Mapa inverso</button>
+    <button class="tab" data-x="theory">Teoría</button>
+    <button class="tab" data-x="flash">Flashcards</button>
+    <button class="tab" data-x="exam">Examen</button>
+    <button class="tab" data-x="review">Repaso</button>
+  </div>
+
+  <section id="map" class="section active">
+    <div class="card">
+      <h2>Prioridad para estudiar</h2>
+      <p class="muted">El porcentaje es una estimación de cobertura basada en el enfoque del material, no una garantía de que esas preguntas aparecerán.</p>
+      <div id="priority"></div>
+    </div>
+    <div class="grid" id="mapGrid"></div>
+  </section>
+
+  <section id="theory" class="section">
+    <input id="search" placeholder="Buscar conocimiento, ciencias formales, Comte, Marx, Durkheim...">
+    <div id="theoryBox" style="margin-top:15px"></div>
+  </section>
+
+  <section id="flash" class="section">
+    <div class="card">
+      <h2>Flashcards de alta prioridad</h2>
+      <p class="muted">Intenta responder antes de revelar.</p>
+      <div id="fc" class="flash"><div class="flashin">
+        <div id="fq" class="question"></div><div id="fa" class="answer"></div>
+      </div></div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+        <button id="prev" class="btn">←</button><button id="next" class="btn">→</button>
+      </div>
+      <div id="fcount" class="muted" style="text-align:center;margin-top:8px"></div>
+    </div>
+  </section>
+
+  <section id="exam" class="section">
+    <div class="card">
+      <h2>Simulador del examen</h2>
+      <div class="grid">
+        <div><label class="muted">Número de preguntas</label>
+          <select id="numQ"><option value="20">20 preguntas</option><option value="25">25 preguntas</option></select></div>
+        <div><label class="muted">Modo</label>
+          <select id="mode"><option value="adaptive">Adaptativo: prioriza tus errores</option><option value="balanced">Balanceado</option><option value="hard">Difícil: preguntas conceptuales</option></select></div>
+      </div>
+      <button id="start" class="btn" style="margin-top:12px">Comenzar examen</button>
+      <div id="examBox" style="margin-top:15px"></div>
+    </div>
+  </section>
+
+  <section id="review" class="section">
+    <div class="grid">
+      <div class="card"><h2>Errores que debes dominar</h2><div id="errors" class="muted"></div></div>
+      <div class="card">
+        <h2>Apuntes personales</h2>
+        <textarea id="notes" rows="12" placeholder="Ejemplo: Formal = ideas; Fáctica = hechos..."></textarea>
+        <button id="saveNotes" class="btn" style="margin-top:10px">Guardar</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">Basada exclusivamente en el PDF proporcionado para esta guía.</div>
+</div>
+
+<script>
+const topics=[
+ {id:"conocimiento",title:"1. El conocimiento",priority:95,type:"🔥 Muy alta",
+  intro:"El conocimiento es presentado como recopilación de información que ayuda a realizar acciones necesarias para satisfacer necesidades o intereses.",
+  points:[
+   "Se transmite entre generaciones, entre amigos, mediante testimonios escritos o visuales, por experiencia o por investigación metodológica.",
+   "El libro distingue conocimiento común y científico.",
+   "El conocimiento común también se llama empírico y nace de la experiencia.",
+   "El científico se obtiene de manera metodológica y busca explicaciones de fenómenos."
+  ]},
+ {id:"comun",title:"2. Conocimiento común vs. científico",priority:98,type:"🔥 Muy alta",
+  intro:"Es una de las comparaciones más claras del material y aparece mediante tablas.",
+  points:[
+   "Común: superficial, subjetivo, irracional e impreciso.",
+   "Científico: sigue un método, se centra en el fenómeno, es racional y certero.",
+   "El científico busca explicaciones mediante investigación y comprobación.",
+   "El ejemplo del corredor ilustra la diferencia entre suponer una causa y averiguarla mediante investigación."
+  ]},
+ {id:"tipos",title:"3. Otros tipos de conocimiento",priority:90,type:"🔥 Muy alta",
+  intro:"El material desarrolla cuatro tipos además del científico y empírico como categorías que pueden confundirse entre sí.",
+  points:[
+   "Intuitivo: no requiere razonamiento previo y ayuda a reaccionar ante obstáculos.",
+   "Empírico: se basa en experiencia y práctica.",
+   "Por autoridad: se acepta como válido lo dicho por alguien de mayor jerarquía.",
+   "Filosófico: cuestiona la realidad y busca respuestas mediante la razón.",
+   "Científico: investigación comprobable, objetiva y sustentada en método científico."
+  ]},
+ {id:"dinamica",title:"4. Dinámica de la ciencia",priority:88,type:"🔥 Alta",
+  intro:"La ciencia no se presenta como conocimiento estático: resolver una duda puede generar nuevas dudas.",
+  points:["Duda inicial → investigación → respuestas → nuevo conocimiento → nuevas dudas → nuevo proceso de investigación.","La curiosidad y los cuestionamientos impulsan la ampliación del conocimiento."]},
+ {id:"formales",title:"5. Ciencias formales vs. fácticas",priority:99,type:"🔥 Muy alta",
+  intro:"El libro dedica una clasificación y tablas comparativas a esta diferencia.",
+  points:[
+   "Formales: estudian ideas/entes ideales y relaciones abstractas; ejemplos: Matemáticas y Lógica.",
+   "Fácticas: estudian hechos, procesos y fenómenos de la realidad.",
+   "Formales construyen su objeto de estudio mediante abstracciones y razonamiento.",
+   "Fácticas se relacionan con la realidad empírica y utilizan observación, experimentación o verificación.",
+   "Las fácticas se subdividen en Ciencias Naturales y Ciencias Sociales."
+  ]},
+ {id:"sociales",title:"6. Ciencias Sociales",priority:97,type:"🔥 Muy alta",
+  intro:"Su objeto de estudio se centra en la sociedad, las personas, sus actividades y su comportamiento.",
+  points:[
+   "Arqueología, Historia y Demografía: evolución de las sociedades.",
+   "Economía, Sociología y Antropología: múltiples formas de interacción humana.",
+   "Psicología y Lingüística: principalmente aspectos del sistema cognitivo.",
+   "También aparecen Derecho, Pedagogía, Ciencias Políticas, Filosofía, Semiología y Ciencias de la Comunicación."
+  ]},
+ {id:"filosofia",title:"7. Filosofía, Sociales y Experimentales",priority:96,type:"🔥 Muy alta",
+  intro:"La actividad de comprensión pide identificar el campo de acción de estas tres áreas y sus diferencias.",
+  points:[
+   "La Filosofía busca causas y respuestas mediante reflexión y cuestionamiento.",
+   "Las Ciencias Experimentales estudian la naturaleza a partir de observación de fenómenos.",
+   "Las Ciencias Sociales se enfocan en interacción y organización humana.",
+   "El material concluye que Ciencias Sociales y Experimentales provienen de la Filosofía."
+  ]},
+ {id:"surgimiento",title:"8. Surgimiento de las Ciencias Sociales",priority:92,type:"🔥 Alta",
+  intro:"El libro explica que las Ciencias Sociales se desarrollan como campo científico principalmente desde el siglo XIX.",
+  points:[
+   "El ser humano se cuestiona, organiza conocimiento y busca resolver necesidades.",
+   "Su despegue como campo científico aparece a mediados del siglo XIX.",
+   "Saint-Simon, Comte, Stuart Mill, Marx y Spencer son presentados como cimentadores.",
+   "Durkheim, Weber y Pareto aparecen como consolidadores a finales del XIX y principios del XX.",
+   "Las Ciencias Sociales son dinámicas y se especializan con los cambios de la sociedad."
+  ]},
+ {id:"pensadores",title:"9. Pensadores de las Ciencias Sociales",priority:100,type:"🔥 Máxima",
+  intro:"Es un bloque ideal para opción múltiple porque cada pensador tiene conceptos característicos.",
+  points:[
+   "Saint-Simon: precursor de la Sociología; reorganizar la sociedad sobre bases de ciencia e industria.",
+   "Auguste Comte: positivismo, Sociología y Ley de los Tres Estadios.",
+   "John Stuart Mill: Economía, libertad, desigualdad social e igualdad de las mujeres.",
+   "Karl Marx: Socialismo Científico, Materialismo Dialéctico, modos de producción y lucha de clases.",
+   "Herbert Spencer: Naturalismo, Sociología, Antropología y Darwinismo social.",
+   "Émile Durkheim: Sociología moderna, hechos sociales y aplicación del método científico.",
+   "Max Weber: teoría social comprensiva, modernización y racionalización.",
+   "Vilfredo Pareto: Sociología y Economía; equilibrio general."
+ ] }
+];
+
+const flash=[
+ ["Formal vs. fáctica: diferencia principal","Formal = ideas/entes ideales. Fáctica = hechos y procesos de la realidad."],
+ ["¿Cuáles son las características del conocimiento común?","Superficial, subjetivo, irracional e impreciso."],
+ ["¿Cuáles son las características del conocimiento científico?","Sigue un método, se centra en el fenómeno, es racional y certero."],
+ ["Conocimiento intuitivo","No requiere razonamiento previo; es útil para reaccionar ante situaciones nuevas."],
+ ["Conocimiento empírico","Basado en experiencia y práctica."],
+ ["Conocimiento por autoridad","Se acepta como válido lo dicho por alguien de mayor jerarquía."],
+ ["Conocimiento filosófico","Surge de cuestionamientos y busca respuestas por medio de la razón."],
+ ["Dinámica de la ciencia","Duda inicial → investigación → respuestas → nuevo conocimiento → nuevas dudas → nueva investigación."],
+ ["¿Qué estudian las Ciencias Sociales?","Sociedad, personas, actividades, interacción y comportamiento humano."],
+ ["Arqueología + Historia + Demografía","Evolución de las sociedades."],
+ ["Economía + Sociología + Antropología","Formas de interacción humana."],
+ ["Psicología + Lingüística","Principalmente aspectos del sistema cognitivo."],
+ ["¿De dónde provienen las Ciencias Sociales y Experimentales según el material?","De la Filosofía."],
+ ["Comte","Positivismo + Sociología + Ley de los Tres Estadios."],
+ ["Marx","Materialismo Dialéctico + modos de producción + lucha de clases."],
+ ["Durkheim","Hechos sociales + Sociología moderna + método científico."],
+ ["Weber","Teoría social comprensiva + racionalización."],
+ ["Pareto","Sociología y Economía + equilibrio general."],
+ ["Saint-Simon","Ciencia e industria como bases para reorganizar la sociedad."],
+ ["Spencer","Naturalismo + Sociología + Antropología + Darwinismo social."]
+];
+
+const Q=[
+ {t:"conocimiento",q:"¿Qué es el conocimiento según el material?",o:["Solo información escolar","Recopilación de información útil para satisfacer necesidades o intereses","Únicamente experiencia","Una teoría científica"],a:1},
+ {t:"comun",q:"¿Cuál característica corresponde al conocimiento común?",o:["Certero","Racional","Superficial","Metodológico"],a:2},
+ {t:"comun",q:"¿Cuál combinación pertenece al conocimiento científico?",o:["Superficial, subjetivo, impreciso","Racional, metodológico y certero","Irracional y subjetivo","Basado solo en autoridad"],a:1},
+ {t:"tipos",q:"El conocimiento intuitivo...",o:["requiere siempre experimentación","no requiere razonamiento previo","se basa en una autoridad","solo se obtiene en la escuela"],a:1},
+ {t:"tipos",q:"¿Qué conocimiento se basa en experiencia y práctica?",o:["Empírico","Formal","Por autoridad","Fáctico"],a:0},
+ {t:"tipos",q:"¿Qué caracteriza al conocimiento por autoridad?",o:["Investigación metodológica","Aceptar como válido lo dicho por alguien de mayor jerarquía","Experimentación","Razonamiento matemático"],a:1},
+ {t:"tipos",q:"¿Qué conocimiento busca respuestas mediante cuestionamientos y razón?",o:["Empírico","Por autoridad","Filosófico","Común"],a:2},
+ {t:"dinamica",q:"¿Qué ocurre después del nuevo conocimiento en la dinámica de la ciencia?",o:["La ciencia termina","Surgen nuevas dudas","Se elimina la investigación","Solo aparece intuición"],a:1},
+ {t:"formales",q:"¿Cuál es el objeto de estudio de las ciencias formales?",o:["Hechos y procesos","Ideas o entes ideales","Sociedades","Fenómenos naturales"],a:1},
+ {t:"formales",q:"¿Cuál pertenece a las ciencias formales?",o:["Sociología","Biología","Matemáticas","Historia"],a:2},
+ {t:"formales",q:"¿Qué caracteriza principalmente a las ciencias fácticas?",o:["Estudian ideas abstractas","Estudian hechos y procesos de la realidad","No pueden verificarse","Solo usan razonamiento lógico"],a:1},
+ {t:"sociales",q:"¿Qué estudian las Ciencias Sociales?",o:["Solo la naturaleza","Sociedad, actividades y comportamiento humano","Únicamente números","Solo fenómenos químicos"],a:1},
+ {t:"sociales",q:"¿Qué grupo estudia la evolución de las sociedades?",o:["Economía, Sociología y Antropología","Arqueología, Historia y Demografía","Psicología y Lingüística","Física y Química"],a:1},
+ {t:"sociales",q:"¿Qué grupo se relaciona con las formas de interacción humana?",o:["Economía, Sociología y Antropología","Arqueología, Historia y Demografía","Psicología y Lingüística","Matemáticas y Lógica"],a:0},
+ {t:"sociales",q:"¿Qué disciplinas estudian principalmente aspectos del sistema cognitivo?",o:["Psicología y Lingüística","Economía y Sociología","Historia y Demografía","Física y Biología"],a:0},
+ {t:"filosofia",q:"Según el material, ¿qué antecede y da origen a las Ciencias Sociales y Experimentales?",o:["La Economía","La Filosofía","La Revolución Industrial","La Psicología"],a:1},
+ {t:"filosofia",q:"¿Cuál es el enfoque de las Ciencias Experimentales?",o:["Interacción humana","Naturaleza y observación de fenómenos","Solo ideas abstractas","Opiniones personales"],a:1},
+ {t:"filosofia",q:"¿Cuál es el enfoque de las Ciencias Sociales?",o:["Interacción y organización humana","Solo fenómenos de laboratorio","Relaciones entre signos","Solo matemáticas"],a:0},
+ {t:"surgimiento",q:"¿En qué siglo tienen su despegue como campo científico las Ciencias Sociales según el material?",o:["XV","XVII","XIX","XXI"],a:2},
+ {t:"surgimiento",q:"¿Quiénes aparecen como cimentadores del nuevo campo de las Ciencias Sociales?",o:["Newton, Galileo y Darwin","Saint-Simon, Comte, Stuart Mill, Marx y Spencer","Weber, Pareto y Durkheim únicamente","Sócrates, Platón y Aristóteles"],a:1},
+ {t:"surgimiento",q:"¿Quiénes aparecen como consolidadores a finales del XIX y principios del XX?",o:["Durkheim, Weber y Pareto","Marx, Mill y Comte","Sócrates, Platón y Aristóteles","Taylor, Ford y Marx"],a:0},
+ {t:"pensadores",q:"¿Quién es asociado al Positivismo y a la Ley de los Tres Estadios?",o:["Comte","Marx","Weber","Pareto"],a:0},
+ {t:"pensadores",q:"¿Quién desarrolló ideas sobre modos de producción y lucha de clases?",o:["Spencer","Marx","Durkheim","Mill"],a:1},
+ {t:"pensadores",q:"¿Quién es pionero de la Sociología moderna y estudió los hechos sociales?",o:["Durkheim","Comte","Saint-Simon","Weber"],a:0},
+ {t:"pensadores",q:"¿Quién se asocia con la teoría social comprensiva?",o:["Pareto","Weber","Marx","Spencer"],a:1},
+ {t:"pensadores",q:"¿Quién se asocia con el equilibrio general en Economía?",o:["Pareto","Comte","Mill","Durkheim"],a:0},
+ {t:"pensadores",q:"¿Quién fue uno de los precursores de la Sociología y relacionó ciencia e industria con la reorganización social?",o:["Saint-Simon","Weber","Marx","Spencer"],a:0},
+ {t:"pensadores",q:"¿Quién realizó aportaciones a Economía y defendió ideas sobre libertad e igualdad de las mujeres?",o:["John Stuart Mill","Pareto","Durkheim","Comte"],a:0},
+ {t:"pensadores",q:"¿Quién es relacionado en el material con el Darwinismo social en Gran Bretaña?",o:["Spencer","Marx","Weber","Saint-Simon"],a:0}
+];
+
+let S=JSON.parse(localStorage.getItem("socialGuide")||"{}");
+S.ok=S.ok||0;S.answered=S.answered||0;S.errors=S.errors||[];S.notes=S.notes||"";
+S.topic={...(S.topic||{})};
+
+const $=s=>document.querySelector(s);
+document.querySelectorAll(".tab[data-x]").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".tab[data-x]").forEach(x=>x.classList.remove("active"));
+ document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
+ b.classList.add("active");$("#"+b.dataset.x).classList.add("active");
+});
+
+function topicAccuracy(id){
+ let x=S.topic[id]||{ok:0,total:0};
+ return x.total?Math.round(x.ok/x.total*100):null;
+}
+function renderMap(){
+ const sorted=[...topics].sort((a,b)=>b.priority-a.priority);
+ $("#priority").innerHTML=sorted.map((t,i)=>{
+  const acc=topicAccuracy(t.id);
+  return `<div class="card" style="margin:9px 0;padding:12px">
+   <div class="topicScore"><b>${i+1}. ${t.title}</b><span>${t.priority}% cobertura · ${acc===null?"sin datos":acc+"% dominio"}</span></div>
+   <div class="progress" style="margin-top:7px"><div class="bar" style="width:${acc===null?0:acc}%"></div></div>
+  </div>`;
+ }).join("");
+ $("#mapGrid").innerHTML=topics.map(t=>`<div class="card">
+   <div class="badge">${t.type}</div><h3>${t.title}</h3><p>${t.intro}</p>
+   <button class="btn" onclick="go('${t.id}')">Estudiar</button>
+ </div>`).join("");
+}
+function renderTheory(f=""){
+ const q=f.toLowerCase();
+ const a=topics.filter(t=>(t.title+" "+t.intro+" "+t.points.join(" ")).toLowerCase().includes(q));
+ $("#theoryBox").innerHTML=a.map(t=>`<div id="${t.id}" class="card">
+   <div class="badge">${t.type} · cobertura estimada ${t.priority}%</div>
+   <h2>${t.title}</h2><p>${t.intro}</p><ul>${t.points.map(x=>`<li>${x}</li>`).join("")}</ul>
+ </div>`).join("")||'<div class="card">No encontrado.</div>';
+}
+function go(id){document.querySelector('[data-x="theory"]').click();setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth"}),40)}
+$("#search").oninput=e=>renderTheory(e.target.value);
+
+let fi=0;
+function flashShow(){
+ $("#fq").textContent=flash[fi][0];$("#fa").textContent=flash[fi][1];
+ $("#fc").classList.remove("revealed");$("#fcount").textContent=`${fi+1} / ${flash.length}`;
+}
+$("#fc").onclick=()=>$("#fc").classList.toggle("revealed");
+$("#next").onclick=()=>{fi=(fi+1)%flash.length;flashShow()};
+$("#prev").onclick=()=>{fi=(fi-1+flash.length)%flash.length;flashShow()};
+
+let exam=[],ei=0,score=0;
+function weightQuestion(x,mode){
+ const topic=x.t;
+ const a=topicAccuracy(topic);
+ let w=1;
+ if(mode==="adaptive") w += a===null?2:(100-a)/25;
+ if(mode==="hard") w += 1.2;
+ return w;
+}
+function weightedSample(arr,n,mode){
+ let pool=[...arr], out=[];
+ while(pool.length && out.length<n){
+  let total=pool.reduce((s,x)=>s+weightQuestion(x,mode),0);
+  let r=Math.random()*total, pick=0;
+  for(let j=0;j<pool.length;j++){r-=weightQuestion(pool[j],mode);if(r<=0){pick=j;break}}
+  out.push(pool[pick]);pool.splice(pick,1);
+ }
+ return out;
+}
+function startExam(){
+ const n=+$("#numQ").value, mode=$("#mode").value;
+ exam=weightedSample(Q,n,mode);ei=0;score=0;drawExam();
+}
+function drawExam(){
+ if(ei>=exam.length){
+  const pct=Math.round(score/exam.length*100);
+  $("#examBox").innerHTML=`<div class="note"><div class="kpi">${score}/${exam.length}</div><b>${pct}% de aciertos</b><br>${pct>=90?"Dominio excelente.":pct>=80?"Buen nivel; refuerza los errores.":"Necesitas otra ronda enfocada en tus temas débiles."}</div>
+  <button class="btn" style="margin-top:10px" onclick="startExam()">Repetir</button>`;
+  renderMap();update();return;
+ }
+ const x=exam[ei];
+ $("#examBox").innerHTML=`<div class="muted">Pregunta ${ei+1} de ${exam.length}</div><h3>${x.q}</h3>
+ ${x.o.map((o,k)=>`<button class="opt" data-k="${k}">${o}</button>`).join("")}`;
+ document.querySelectorAll(".opt").forEach(btn=>btn.onclick=()=>{
+  const k=+btn.dataset.k;
+  document.querySelectorAll(".opt").forEach(z=>z.disabled=true);
+  S.topic[x.t]=S.topic[x.t]||{ok:0,total:0};S.topic[x.t].total++;
+  if(k===x.a){btn.classList.add("correct");score++;S.ok++;S.topic[x.t].ok++}
+  else{btn.classList.add("wrong");document.querySelectorAll(".opt")[x.a].classList.add("correct");S.errors.push({q:x.q,t:x.t})}
+  S.answered++;save();
+  setTimeout(()=>{ei++;drawExam()},650);
+ });
+}
+$("#start").onclick=startExam;
+
+function update(){
+ const p=S.answered?Math.round(S.ok/S.answered*100):0;
+ $("#bar").style.width=p+"%";$("#overall").textContent=`${p}% de aciertos · ${S.ok} correctas / ${S.answered} respondidas`;
+ const unique=[];const seen=new Set();
+ [...S.errors].reverse().forEach(e=>{if(!seen.has(e.q)){seen.add(e.q);unique.push(e)}});
+ $("#errors").innerHTML=unique.length?unique.map((e,i)=>`<div class="card" style="padding:11px;margin:8px 0"><b>${i+1}.</b> ${e.q}<div class="muted">Tema: ${topics.find(t=>t.id===e.t)?.title||e.t}</div></div>`).join(""):"Todavía no tienes errores registrados.";
+}
+function save(){localStorage.setItem("socialGuide",JSON.stringify(S));update()}
+$("#notes").value=S.notes;
+$("#saveNotes").onclick=()=>{S.notes=$("#notes").value;save();alert("Apuntes guardados.")};
+
+renderMap();renderTheory();flashShow();update();
+</script>
+</body>
+</html>'''
+
+path=Path("/mnt/data/guia_interactiva_introduccion_ciencias_sociales.html")
+path.write_text(html,encoding="utf-8")
+print(path)
