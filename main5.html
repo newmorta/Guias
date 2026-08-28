@@ -1,0 +1,1616 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guía Interactiva — La Naturaleza de la Vida</title>
+
+<style>
+:root{
+  --bg:#07101b;
+  --panel:#101c2d;
+  --text:#eef5ff;
+  --muted:#9fb0c7;
+  --accent:#7b61ff;
+  --good:#29d5a3;
+  --bad:#ff637a;
+  --border:#2a3b59
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:linear-gradient(135deg,#06101a,#14243d);
+  color:var(--text);
+  font:16px/1.55 system-ui,Segoe UI,Arial
+}
+
+header,.wrap{
+  max-width:1180px;
+  margin:auto;
+  padding:26px 20px
+}
+
+h1{
+  font-size:clamp(28px,4vw,46px);
+  margin:.2em 0
+}
+
+h2,h3{
+  margin-top:.2em
+}
+
+.muted{
+  color:var(--muted);
+  font-size:13px
+}
+
+.badge{
+  display:inline-block;
+  background:#1d2d4b;
+  padding:4px 9px;
+  border-radius:99px;
+  font-size:12px
+}
+
+.card{
+  background:#101c2eee;
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:15px
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(270px,1fr));
+  gap:15px
+}
+
+.tabs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:16px 0
+}
+
+.tab,.btn,.opt{
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:10px 13px;
+  background:#182943;
+  color:var(--text);
+  cursor:pointer
+}
+
+.tab.active,.btn{
+  background:var(--accent);
+  border-color:var(--accent)
+}
+
+.section{
+  display:none
+}
+
+.section.active{
+  display:block
+}
+
+.progress{
+  height:11px;
+  background:#20304a;
+  border-radius:99px;
+  overflow:hidden
+}
+
+.bar{
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,var(--accent),var(--good));
+  transition:.3s
+}
+
+input,textarea,select{
+  width:100%;
+  background:#0d1728;
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:11px;
+  font:inherit
+}
+
+.flash{
+  min-height:280px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  cursor:pointer
+}
+
+.flashin{
+  width:100%;
+  min-height:280px;
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:linear-gradient(145deg,#192b49,#0d1829);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:30px
+}
+
+.answer{
+  display:none
+}
+
+.revealed .question{
+  display:none
+}
+
+.revealed .answer{
+  display:block
+}
+
+.opt{
+  display:block;
+  width:100%;
+  text-align:left;
+  margin:8px 0
+}
+
+.opt.correct{
+  background:#103b30;
+  border-color:var(--good)
+}
+
+.opt.wrong{
+  background:#3b1720;
+  border-color:var(--bad)
+}
+
+.note{
+  border-left:4px solid var(--accent);
+  padding:12px 14px;
+  background:#101a2c;
+  border-radius:8px
+}
+
+.kpi{
+  font-size:30px;
+  font-weight:800
+}
+
+.footer{
+  text-align:center;
+  color:var(--muted);
+  padding:25px
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="badge">
+    UANL · ETAPA 1 · ORIGEN DE LA VIDA, EVOLUCIÓN Y TAXONOMÍA
+  </div>
+
+  <h1>La Naturaleza de la Vida</h1>
+
+  <p class="muted">
+    Guía interactiva basada en el libro proporcionado. 
+    Prioriza conceptos a partir de actividades, definiciones,
+    comparaciones, tablas, teorías y científicos destacados.
+  </p>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <b>Rendimiento de práctica</b>
+
+    <div class="progress" style="margin-top:9px">
+      <div id="bar" class="bar"></div>
+    </div>
+
+    <div id="overall" class="muted">
+      0% de aciertos
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-x="map">Mapa inverso</button>
+    <button class="tab" data-x="theory">Teoría</button>
+    <button class="tab" data-x="flash">Flashcards</button>
+    <button class="tab" data-x="exam">Examen</button>
+    <button class="tab" data-x="review">Repaso</button>
+  </div>
+
+  <!-- MAPA -->
+  <section id="map" class="section active">
+
+    <div class="card">
+
+      <h2>Prioridad de estudio</h2>
+
+      <p class="muted">
+        La prioridad se basa en los temas que el material utiliza
+        en actividades, comparaciones, tablas, cronologías y evidencias.
+      </p>
+
+      <div id="priority"></div>
+
+    </div>
+
+    <div id="mapGrid" class="grid"></div>
+
+  </section>
+
+  <!-- TEORIA -->
+  <section id="theory" class="section">
+
+    <input
+      id="search"
+      placeholder="Buscar Big Bang, Pasteur, Oparin, Darwin, Lamarck, fósiles, Linneo..."
+    >
+
+    <div id="theoryBox" style="margin-top:15px"></div>
+
+  </section>
+
+  <!-- FLASHCARDS -->
+  <section id="flash" class="section">
+
+    <div class="card">
+
+      <h2>Flashcards</h2>
+
+      <p class="muted">
+        Responde de memoria y toca la tarjeta para revelar.
+      </p>
+
+      <div id="fc" class="flash">
+
+        <div class="flashin">
+
+          <div id="fq" class="question"></div>
+
+          <div id="fa" class="answer"></div>
+
+        </div>
+
+      </div>
+
+      <div style="
+        display:flex;
+        gap:8px;
+        justify-content:center;
+        margin-top:12px
+      ">
+        <button id="prev" class="btn">←</button>
+        <button id="next" class="btn">→</button>
+      </div>
+
+      <div
+        id="fcount"
+        class="muted"
+        style="text-align:center;margin-top:8px"
+      ></div>
+
+    </div>
+
+  </section>
+
+  <!-- EXAMEN -->
+  <section id="exam" class="section">
+
+    <div class="card">
+
+      <h2>Simulador del examen</h2>
+
+      <div class="grid">
+
+        <div>
+
+          <label class="muted">
+            Número de preguntas
+          </label>
+
+          <select id="numQ">
+            <option value="20">20 preguntas</option>
+            <option value="25">25 preguntas</option>
+          </select>
+
+        </div>
+
+        <div>
+
+          <label class="muted">
+            Modo
+          </label>
+
+          <select id="mode">
+            <option value="adaptive">
+              Adaptativo
+            </option>
+
+            <option value="balanced">
+              Balanceado
+            </option>
+
+            <option value="hard">
+              Difícil
+            </option>
+          </select>
+
+        </div>
+
+      </div>
+
+      <button
+        id="start"
+        class="btn"
+        style="margin-top:12px"
+      >
+        Comenzar
+      </button>
+
+      <div
+        id="examBox"
+        style="margin-top:15px"
+      ></div>
+
+    </div>
+
+  </section>
+
+  <!-- REPASO -->
+  <section id="review" class="section">
+
+    <div class="grid">
+
+      <div class="card">
+
+        <h2>Errores</h2>
+
+        <div id="errors" class="muted"></div>
+
+      </div>
+
+      <div class="card">
+
+        <h2>Mis apuntes</h2>
+
+        <textarea
+          id="notes"
+          rows="12"
+          placeholder="Ejemplo: estructuras homólogas = mismo origen, función diferente..."
+        ></textarea>
+
+        <button
+          id="saveNotes"
+          class="btn"
+          style="margin-top:10px"
+        >
+          Guardar
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <div class="footer">
+    Guía construida a partir del material proporcionado.
+  </div>
+
+</div>
+
+<script>
+
+/* =========================================================
+   TEMAS
+========================================================= */
+
+const T = [
+
+{
+  id:"universe",
+  title:"1. Origen del Universo",
+  p:90,
+  type:"🔥 Muy alta",
+  intro:"El libro presenta varias teorías sobre el origen y evolución del Universo.",
+  pts:[
+    "Universo eterno o estático: cosmos sin principio ni final.",
+    "Aristóteles sostuvo una visión geocéntrica.",
+    "Copérnico colocó a la Tierra como planeta que orbita al Sol.",
+    "Estado estacionario: Fred Hoyle; universo sin principio ni fin y creación constante de materia.",
+    "Big Bang: Hubble observó la expansión del universo.",
+    "El material presenta al Big Bang como la teoría más aceptada.",
+    "Fondo cósmico de microondas y abundancia de elementos ligeros aparecen como evidencias.",
+    "Inflación cósmica: Alan Guth.",
+    "Universo oscilante: Richard Tolman."
+  ]
+},
+
+{
+  id:"originlife",
+  title:"2. Origen de la vida",
+  p:98,
+  type:"🔥 Máxima",
+  intro:"Bloque central de la Etapa 1.",
+  pts:[
+    "Creacionismo: vida creada por una fuerza o ser divino.",
+    "Generación espontánea: vida surgida de materia inerte.",
+    "Panspermia: vida o moléculas precursoras provenientes del espacio.",
+    "Panspermia dirigida: propuesta por Francis Crick y Leslie Orgel.",
+    "Teoría quimiosintética: Alexander Oparin.",
+    "Evolución gradual de moléculas simples hacia moléculas complejas."
+  ]
+},
+
+{
+  id:"refutation",
+  title:"3. Generación espontánea y experimentos",
+  p:100,
+  type:"🔥 Máxima",
+  intro:"Secuencia ideal para preguntas de autor → experimento → conclusión.",
+  pts:[
+    "Aristóteles: defensor de la generación espontánea.",
+    "Van Helmont: experimento de camisa sucia + trigo para producir ratones.",
+    "Needham: calentó y selló caldos; interpretó microorganismos como generación espontánea.",
+    "Redi (1668): demostró que los gusanos provenían de huevos de moscas.",
+    "Spallanzani: mejoró el hervido y sellado de los caldos.",
+    "Pasteur (1861): matraces de cuello de cisne; microorganismos provenientes del ambiente."
+  ]
+},
+
+{
+  id:"oparin",
+  title:"4. Oparin y Miller-Urey",
+  p:100,
+  type:"🔥 Máxima",
+  intro:"Tema importante porque el libro lo desarrolla y la actividad pide una cronología del origen de la vida.",
+  pts:[
+    "Oparin propuso la teoría quimiosintética.",
+    "La Tierra primitiva tenía metano, amoníaco, hidrógeno y vapor de agua.",
+    "Se plantea ausencia de oxígeno libre como condición importante.",
+    "Fuentes de energía: rayos, radiación ultravioleta y actividad volcánica.",
+    "Se formaron moléculas orgánicas simples.",
+    "Las moléculas se acumularon formando una sopa primordial.",
+    "Miller y Urey recrearon condiciones de la Tierra primitiva.",
+    "Encontraron moléculas orgánicas, incluidos aminoácidos."
+  ]
+},
+
+{
+  id:"precell",
+  title:"5. Modelos precelulares",
+  p:90,
+  type:"🟠 Alta",
+  intro:"Modelos que representan etapas anteriores a las primeras células.",
+  pts:[
+    "Coacervados: gotas microscópicas de moléculas orgánicas.",
+    "No eran seres vivos.",
+    "Podían concentrar sustancias y permitir reacciones químicas.",
+    "Microesférulas proteicas: propuestas por Sidney W. Fox.",
+    "Sulfobios y colpoides: asociados con Alfonso L. Herrera.",
+    "Herrera propuso la teoría de la plasmogenia."
+  ]
+},
+
+{
+  id:"membrane",
+  title:"6. Membranas, ADN y ARN",
+  p:86,
+  type:"🟠 Alta",
+  intro:"Moléculas y estructuras relacionadas con el origen de la vida.",
+  pts:[
+    "Las membranas plasmáticas actuales presentan una bicapa fosfolipídica.",
+    "El ADN contiene información genética.",
+    "Las proteínas realizan funciones estructurales y catalíticas.",
+    "El ARN transporta información del ADN hacia la síntesis de proteínas.",
+    "Thomas Cech y Sidney Altman estudiaron la actividad catalítica del ARN.",
+    "El material plantea la hipótesis del ARN como molécula inicial."
+  ]
+},
+
+{
+  id:"endosym",
+  title:"7. Endosimbiosis",
+  p:88,
+  type:"🔥 Alta",
+  intro:"Explica el posible origen de las células eucariotas.",
+  pts:[
+    "Lynn Margulis propuso la teoría de la endosimbiosis.",
+    "Las células eucariotas habrían surgido de relaciones simbióticas entre procariotas.",
+    "Una célula procariota grande habría incorporado otra más pequeña.",
+    "En lugar de digerirla, ambas habrían vivido en simbiosis.",
+    "Las células eucariotas incluyen animales, plantas, hongos y protistas."
+  ]
+},
+
+{
+  id:"evolution",
+  title:"8. Evolución y Lamarck",
+  p:98,
+  type:"🔥 Máxima",
+  intro:"La actividad 2 pide comparar el pensamiento evolucionista.",
+  pts:[
+    "Evolución significa cambio.",
+    "Las especies cambian mediante descendencia con modificaciones.",
+    "Lamarck propuso la herencia de características adquiridas.",
+    "También planteó el uso y desuso.",
+    "Ejemplo clásico: jirafas que estiran el cuello.",
+    "El material señala que las características adquiridas no son heredables."
+  ]
+},
+
+{
+  id:"darwin",
+  title:"9. Darwin y Wallace",
+  p:100,
+  type:"🔥 Máxima",
+  intro:"La actividad pide un diagrama de flujo de la selección natural.",
+  pts:[
+    "Charles Darwin y Alfred Russel Wallace propusieron la selección natural de forma independiente.",
+    "Los organismos con características favorables tienen mayor probabilidad de sobrevivir.",
+    "También poseen mayor probabilidad de reproducirse.",
+    "Cinco ideas: sobreproducción, variabilidad, competencia, descendencia con modificaciones heredables y nuevas especies.",
+    "Darwin estudió fósiles y organismos actuales.",
+    "Los pinzones de Galápagos aparecen como ejemplo."
+  ]
+},
+
+{
+  id:"synthetic",
+  title:"10. Teoría sintética",
+  p:99,
+  type:"🔥 Máxima",
+  intro:"Integra la selección natural de Darwin con la genética.",
+  pts:[
+    "Combina Darwin, Mendel y genética moderna.",
+    "Las mutaciones son fuente de variación genética.",
+    "La reproducción sexual aumenta la diversidad genética.",
+    "La selección natural actúa sobre variabilidad genética existente.",
+    "Deriva genética: cambios aleatorios en frecuencias de alelos.",
+    "Flujo genético: movimiento de genes entre poblaciones.",
+    "Especiación: formación de nuevas especies.",
+    "La evolución ocurre a nivel poblacional."
+  ]
+},
+
+{
+  id:"evidence",
+  title:"11. Evidencias de la evolución",
+  p:100,
+  type:"🔥 Máxima",
+  intro:"La actividad pide una tabla de diferentes evidencias de la evolución.",
+  pts:[
+    "Fósiles: registro físico de organismos del pasado.",
+    "Archaeopteryx: ejemplo de organismo transicional.",
+    "Homólogas: mismo origen, funciones diferentes.",
+    "Análogas: función similar, origen evolutivo diferente.",
+    "Vestigiales: estructuras reducidas o sin función evidente.",
+    "Biogeografía: distribución geográfica de organismos.",
+    "Galápagos: ejemplo de aislamiento y variación.",
+    "Glossopteris: evidencia relacionada con Pangea.",
+    "Resistencia a antibióticos: ejemplo de selección natural.",
+    "Evidencia bioquímica: similitudes en moléculas y ADN."
+  ]
+},
+
+{
+  id:"geologic",
+  title:"12. Escala geológica",
+  p:82,
+  type:"🟠 Alta",
+  intro:"Organiza la historia de la Tierra.",
+  pts:[
+    "La Tierra tiene más de 4,500 millones de años según el material.",
+    "Permite comparar rocas y fósiles.",
+    "Los límites pueden relacionarse con origen o extinción de organismos.",
+    "Jerarquía: eones → eras → periodos → épocas."
+  ]
+},
+
+{
+  id:"taxonomy",
+  title:"13. Taxonomía y especie",
+  p:100,
+  type:"🔥 Máxima",
+  intro:"La actividad 3 pide identificar conceptos de taxonomía y clasificar un organismo.",
+  pts:[
+    "Taxonomía: identifica, nombra y clasifica organismos.",
+    "Especie biológica: individuos que pueden reproducirse entre sí y generar descendencia fértil.",
+    "Biodiversidad: variedad de vida.",
+    "Incluye variedad de especies, variación genética y ecosistemas.",
+    "La taxonomía ayuda a organizar y comprender la biodiversidad."
+  ]
+},
+
+{
+  id:"systematics",
+  title:"14. Sistemática y nomenclatura",
+  p:98,
+  type:"🔥 Muy alta",
+  intro:"Diferenciar categorías taxonómicas y nomenclatura.",
+  pts:[
+    "Especie → género → familia → orden → clase → filo → reino → dominio.",
+    "Nomenclatura binomial: dos términos.",
+    "Ejemplo: Panthera leo.",
+    "Primera palabra: género.",
+    "Segunda palabra: epíteto específico.",
+    "Los nombres científicos se basan en latín.",
+    "Sistemática: agrupa por similitudes y relaciones evolutivas.",
+    "Taxonomía: proporciona reglas y procedimientos de clasificación."
+  ]
+},
+
+{
+  id:"kingdoms",
+  title:"15. Cinco reinos y tres dominios",
+  p:100,
+  type:"🔥 Máxima",
+  intro:"La actividad 3 pide comparar los reinos y el libro presenta también tres dominios.",
+  pts:[
+    "Whittaker propuso cinco reinos.",
+    "Monera, Protista, Plantae, Hongos y Animalia.",
+    "Monera: organismos procariotas según la clasificación presentada.",
+    "Woese propuso tres dominios.",
+    "Bacteria, Archaea y Eukarya.",
+    "Eukarya incluye organismos con células eucariotas."
+  ]
+},
+
+{
+  id:"scientists",
+  title:"16. Linneo, Whittaker y Woese",
+  p:100,
+  type:"🔥 Máxima",
+  intro:"Sus aportaciones aparecen destacadas en el material.",
+  pts:[
+    "Linneo: nomenclatura binomial y bases de la clasificación moderna.",
+    "Whittaker: clasificación de cinco reinos.",
+    "Woese: sistema de tres dominios.",
+    "Woese utilizó análisis del ARN ribosomal.",
+    "Sus aportaciones ayudaron a comprender la diversidad y relaciones evolutivas."
+  ]
+}
+
+];
+
+
+/* =========================================================
+   FLASHCARDS
+========================================================= */
+
+const F = [
+
+["Teoría del estado estacionario",
+"Universo sin principio ni fin; en expansión y con creación constante de materia."],
+
+["Big Bang",
+"Expansión del propio espacio-tiempo. El material lo presenta como la teoría más aceptada."],
+
+["Inflación cósmica",
+"Alan Guth; expansión extremadamente rápida poco después del Big Bang."],
+
+["Universo oscilante",
+"Richard Tolman; expansión y contracción periódicas."],
+
+["Generación espontánea",
+"Idea de que organismos vivos pueden surgir de materia inerte."],
+
+["Redi",
+"Demostró que los gusanos de la carne provenían de huevos de moscas."],
+
+["Spallanzani",
+"Mejoró el hervido y sellado de caldos para refutar la generación espontánea."],
+
+["Pasteur",
+"Usó matraces de cuello de cisne y demostró que los microorganismos provenían del ambiente."],
+
+["Panspermia",
+"Hipótesis de que la vida o moléculas precursoras llegaron a la Tierra desde el espacio."],
+
+["Oparin",
+"Teoría quimiosintética: moléculas simples evolucionan hacia moléculas complejas en la Tierra primitiva."],
+
+["Miller-Urey",
+"En 1953 recrearon condiciones de la Tierra primitiva y obtuvieron moléculas orgánicas, incluidos aminoácidos."],
+
+["Coacervados",
+"Gotas microscópicas de moléculas orgánicas; no eran seres vivos y pudieron preceder a las primeras células."],
+
+["Endosimbiosis",
+"Lynn Margulis; las células eucariotas surgieron de relaciones simbióticas entre procariotas."],
+
+["Lamarck",
+"Herencia de características adquiridas y uso/desuso."],
+
+["Selección natural",
+"Los organismos con características favorables tienen mayor probabilidad de sobrevivir y reproducirse."],
+
+["Teoría sintética",
+"Darwin + Mendel + genética moderna."],
+
+["Mutaciones",
+"Fuente principal de variación genética según el material."],
+
+["Deriva genética",
+"Cambios aleatorios en la frecuencia de alelos, especialmente en poblaciones pequeñas."],
+
+["Flujo genético",
+"Movimiento de genes entre poblaciones."],
+
+["Estructuras homólogas",
+"Mismo origen evolutivo, funciones diferentes."],
+
+["Estructuras análogas",
+"Función similar, origen evolutivo independiente."],
+
+["Estructuras vestigiales",
+"Características reducidas o sin función evidente que conservan rastros evolutivos."],
+
+["Taxonomía",
+"Disciplina que identifica, nombra y clasifica organismos."],
+
+["Especie biológica",
+"Individuos capaces de reproducirse entre sí y producir descendencia fértil."],
+
+["Nomenclatura binomial",
+"Nombre científico formado por género y epíteto específico."],
+
+["Whittaker",
+"Clasificación de los cinco reinos."],
+
+["Woese",
+"Tres dominios: Bacteria, Archaea y Eukarya."],
+
+["Linneo",
+"Sistema binomial y bases de la clasificación moderna."]
+];
+
+
+/* =========================================================
+   PREGUNTAS
+========================================================= */
+
+const Q = [
+
+["universe","¿Qué observó Hubble en 1929?",
+["Que el universo era estático",
+"Que las galaxias se alejaban y el universo se expandía",
+"Que la vida apareció",
+"Que la Tierra era el centro"],1],
+
+["universe","¿Qué teoría propone un universo sin principio ni fin y creación constante de materia?",
+["Big Bang","Estado estacionario","Inflación","Universo oscilante"],1],
+
+["universe","¿Quién propuso la inflación cósmica?",
+["Richard Tolman","Alan Guth","Edwin Hubble","Fred Hoyle"],1],
+
+["originlife","¿Qué sostiene la panspermia?",
+["Vida creada por selección natural",
+"Vida llegada desde el espacio",
+"Vida surgida de carne",
+"Vida formada solamente por células"],1],
+
+["originlife","¿Quién propuso la teoría quimiosintética?",
+["Oparin","Pasteur","Darwin","Linneo"],0],
+
+["refutation","¿Qué demostró Francesco Redi?",
+["Que el Big Bang ocurrió",
+"Que los gusanos de la carne provenían de huevos de moscas",
+"Que las mutaciones son heredables",
+"Que existen tres dominios"],1],
+
+["refutation","¿Qué utilizó Pasteur?",
+["Pinzones","Matraces de cuello de cisne","Fósiles","Coacervados"],1],
+
+["oparin","¿Qué recrearon Miller y Urey?",
+["La selección natural",
+"Condiciones de la Tierra primitiva",
+"La taxonomía",
+"La deriva genética"],1],
+
+["oparin","¿Qué moléculas aparecieron en el experimento Miller-Urey?",
+["Aminoácidos","Células eucariotas","Fósiles","Cromosomas"],0],
+
+["precell","¿Qué son los coacervados?",
+["Seres vivos completos",
+"Gotas microscópicas de moléculas orgánicas",
+"Fósiles",
+"Tipos de bacterias"],1],
+
+["endosym","¿Quién propuso la teoría de la endosimbiosis?",
+["Lynn Margulis","Linneo","Whittaker","Wallace"],0],
+
+["evolution","¿Qué plantea Lamarck?",
+["Selección natural",
+"Herencia de características adquiridas y uso/desuso",
+"Deriva genética",
+"Tres dominios"],1],
+
+["darwin","¿Qué mecanismo propuso Darwin como motor principal del cambio evolutivo?",
+["Panspermia","Selección natural","Generación espontánea","Taxonomía"],1],
+
+["darwin","¿Cuál NO corresponde a las cinco afirmaciones del material?",
+["Sobreproducción",
+"Variabilidad",
+"Competencia",
+"Los organismos cambian porque necesitan hacerlo"],3],
+
+["synthetic","¿Qué integra la teoría sintética?",
+["Darwin, Mendel y genética moderna",
+"Pasteur y Lamarck",
+"Linneo y Whittaker",
+"Big Bang y panspermia"],0],
+
+["synthetic","¿Qué es una fuente principal de variación genética?",
+["Mutaciones","Fósiles","Adaptación adquirida","Nomenclatura"],0],
+
+["synthetic","¿Qué caracteriza a la deriva genética?",
+["Cambios aleatorios en frecuencias de alelos",
+"Creación de nuevos reinos",
+"Llegada de genes desde el espacio",
+"Formación de fósiles"],0],
+
+["synthetic","¿La evolución ocurre a nivel individual o poblacional?",
+["Individual","Poblacional","Solo celular","Solo ecológico"],1],
+
+["evidence","¿Qué son estructuras homólogas?",
+["Misma función y distinto origen",
+"Mismo origen y funciones diferentes",
+"Sin origen común",
+"Solo vestigiales"],1],
+
+["evidence","¿Qué son estructuras análogas?",
+["Mismo origen y funciones diferentes",
+"Función similar y origen evolutivo independiente",
+"Restos fósiles",
+"Genes idénticos"],1],
+
+["evidence","¿Qué es una estructura vestigial?",
+["Rasgo reducido o sin función evidente que refleja historia evolutiva",
+"Mutación siempre beneficiosa",
+"Nueva especie",
+"Célula procariota"],0],
+
+["evidence","¿Qué fósil aparece como ejemplo de organismo transicional entre dinosaurios y aves?",
+["Glossopteris","Archaeopteryx","Homo","Panthera"],1],
+
+["evidence","¿Qué evidencia utiliza la distribución geográfica de especies y fósiles?",
+["Biogeográfica","Bioquímica","Vestigial","Molecular exclusivamente"],0],
+
+["evidence","¿Cuál es un ejemplo moderno de selección natural?",
+["Resistencia a antibióticos","Nomenclatura binomial","Panspermia","Escala geológica"],0],
+
+["taxonomy","¿Qué es la taxonomía?",
+["Estudio del universo",
+"Disciplina que identifica, nombra y clasifica organismos",
+"Teoría evolutiva",
+"Estudio de membranas"],1],
+
+["taxonomy","¿Qué define una especie biológica?",
+["Individuos capaces de reproducirse y generar descendencia fértil",
+"Organismos del mismo reino",
+"Células con núcleo",
+"Cualquier organismo parecido"],0],
+
+["systematics","¿Cuál es el orden correcto de menor a mayor?",
+["Especie → género → familia → orden → clase → filo → reino → dominio",
+"Dominio → reino → especie → género",
+"Reino → dominio → especie → clase",
+"Género → especie → dominio → reino"],0],
+
+["systematics","¿Qué representa Panthera en Panthera leo?",
+["Género","Especie completa","Reino","Dominio"],0],
+
+["systematics","¿Qué representa leo en Panthera leo?",
+["Género","Epíteto específico","Reino","Dominio"],1],
+
+["kingdoms","¿Quién propuso los cinco reinos?",
+["Woese","Whittaker","Linneo","Margulis"],1],
+
+["kingdoms","¿Cuáles son los tres dominios?",
+["Monera, Protista, Plantae",
+"Bacteria, Archaea, Eukarya",
+"Animalia, Plantae, Fungi",
+"Clase, orden, familia"],1],
+
+["scientists","¿Quién es conocido como Padre de la Taxonomía?",
+["Linneo","Darwin","Pasteur","Oparin"],0],
+
+["scientists","¿Qué aportó Woese?",
+["Cinco reinos",
+"Sistema binomial",
+"Tres dominios basados en ARN ribosomal",
+"Selección natural"],2],
+
+["scientists","¿Qué aportó Whittaker?",
+["Tres dominios","Cinco reinos","Panspermia","Endosimbiosis"],1],
+
+["geologic","¿Cuál es el orden indicado por la escala geológica?",
+["Eones → eras → periodos → épocas",
+"Épocas → eras → eones → periodos",
+"Reinos → clases → periodos",
+"Dominios → reinos → eras"],0]
+
+];
+
+
+/* =========================================================
+   ESTADO
+========================================================= */
+
+let S = JSON.parse(
+  localStorage.getItem("natureLifeGuide") || "{}"
+);
+
+S.ok = S.ok || 0;
+S.ans = S.ans || 0;
+S.err = S.err || [];
+S.topic = S.topic || {};
+S.notes = S.notes || "";
+
+const $ = s => document.querySelector(s);
+
+
+/* =========================================================
+   NAVEGACIÓN
+========================================================= */
+
+document.querySelectorAll(".tab[data-x]").forEach(b => {
+
+  b.onclick = () => {
+
+    document
+      .querySelectorAll(".tab[data-x]")
+      .forEach(x => x.classList.remove("active"));
+
+    document
+      .querySelectorAll(".section")
+      .forEach(x => x.classList.remove("active"));
+
+    b.classList.add("active");
+
+    $("#" + b.dataset.x)
+      .classList.add("active");
+  };
+
+});
+
+
+/* =========================================================
+   DOMINIO
+========================================================= */
+
+function acc(id){
+
+  let x = S.topic[id] || {
+    ok:0,
+    total:0
+  };
+
+  return x.total
+    ? Math.round(x.ok / x.total * 100)
+    : null;
+
+}
+
+
+/* =========================================================
+   MAPA
+========================================================= */
+
+function renderMap(){
+
+  let sorted = [...T]
+    .sort((a,b)=>b.p-a.p);
+
+  $("#priority").innerHTML = sorted
+    .map((t,i)=>{
+
+      let z = acc(t.id);
+
+      return `
+        <div class="card"
+             style="padding:11px;margin:8px 0">
+
+          <div style="
+            display:flex;
+            justify-content:space-between;
+            gap:8px
+          ">
+
+            <b>
+              ${i+1}. ${t.title}
+            </b>
+
+            <span>
+              ${t.p}% cobertura ·
+              ${
+                z === null
+                ? "sin datos"
+                : z + "% dominio"
+              }
+            </span>
+
+          </div>
+
+          <div class="progress"
+               style="margin-top:7px">
+
+            <div class="bar"
+                 style="width:${z || 0}%">
+            </div>
+
+          </div>
+
+        </div>
+      `;
+
+    })
+    .join("");
+
+
+  $("#mapGrid").innerHTML = T
+    .map(t=>`
+
+      <div class="card">
+
+        <div class="badge">
+          ${t.type}
+        </div>
+
+        <h3>
+          ${t.title}
+        </h3>
+
+        <p>
+          ${t.intro}
+        </p>
+
+        <ul>
+          ${t.pts
+            .map(x=>`<li>${x}</li>`)
+            .join("")}
+        </ul>
+
+        <button
+          class="btn"
+          onclick="go('${t.id}')">
+
+          Estudiar
+
+        </button>
+
+      </div>
+    `)
+    .join("");
+
+}
+
+
+/* =========================================================
+   TEORÍA
+========================================================= */
+
+function renderTheory(f=""){
+
+  let q = f.toLowerCase();
+
+  let a = T.filter(t =>
+    (
+      t.title +
+      t.intro +
+      t.pts.join(" ")
+    )
+    .toLowerCase()
+    .includes(q)
+  );
+
+  $("#theoryBox").innerHTML = a
+    .map(t=>`
+
+      <div
+        id="${t.id}"
+        class="card">
+
+        <div class="badge">
+          ${t.type} · ${t.p}% cobertura
+        </div>
+
+        <h2>
+          ${t.title}
+        </h2>
+
+        <p>
+          ${t.intro}
+        </p>
+
+        <ul>
+          ${t.pts
+            .map(x=>`<li>${x}</li>`)
+            .join("")}
+        </ul>
+
+      </div>
+    `)
+    .join("")
+    ||
+    `<div class="card">
+      No encontrado.
+    </div>`;
+
+}
+
+
+function go(id){
+
+  document
+    .querySelector('[data-x="theory"]')
+    .click();
+
+  setTimeout(()=>{
+
+    document
+      .getElementById(id)
+      ?.scrollIntoView({
+        behavior:"smooth"
+      });
+
+  },40);
+
+}
+
+$("#search").oninput = e =>
+  renderTheory(e.target.value);
+
+
+/* =========================================================
+   FLASHCARDS
+========================================================= */
+
+let fi = 0;
+
+function flash(){
+
+  $("#fq").textContent =
+    F[fi][0];
+
+  $("#fa").textContent =
+    F[fi][1];
+
+  $("#fc")
+    .classList
+    .remove("revealed");
+
+  $("#fcount").textContent =
+    `${fi+1}/${F.length}`;
+
+}
+
+$("#fc").onclick =
+  () =>
+    $("#fc")
+      .classList
+      .toggle("revealed");
+
+$("#next").onclick = () => {
+
+  fi = (fi + 1) % F.length;
+
+  flash();
+
+};
+
+$("#prev").onclick = () => {
+
+  fi =
+    (fi - 1 + F.length) %
+    F.length;
+
+  flash();
+
+};
+
+
+/* =========================================================
+   EXAMEN ADAPTATIVO
+========================================================= */
+
+let ex = [];
+let ei = 0;
+let sc = 0;
+
+
+function weight(x,mode){
+
+  let a = acc(x[0]);
+
+  if(mode === "balanced")
+    return 1;
+
+  if(mode === "hard")
+    return 2;
+
+  if(a === null)
+    return 3;
+
+  return 1 + (100-a)/25;
+
+}
+
+
+function sample(n,mode){
+
+  let p = [...Q];
+  let out = [];
+
+  while(
+    p.length &&
+    out.length < n
+  ){
+
+    let total =
+      p.reduce(
+        (s,x) =>
+          s + weight(x,mode),
+        0
+      );
+
+    let r =
+      Math.random() * total;
+
+    let j = 0;
+
+    for(;j<p.length;j++){
+
+      r -= weight(
+        p[j],
+        mode
+      );
+
+      if(r <= 0)
+        break;
+
+    }
+
+    out.push(
+      p[j]
+    );
+
+    p.splice(
+      j,
+      1
+    );
+
+  }
+
+  return out;
+
+}
+
+
+function start(){
+
+  let amount =
+    parseInt(
+      $("#numQ").value,
+      10
+    );
+
+  let mode =
+    $("#mode").value;
+
+  ex = sample(
+    amount,
+    mode
+  );
+
+  ei = 0;
+  sc = 0;
+
+  draw();
+
+}
+
+
+function draw(){
+
+  if(ei >= ex.length){
+
+    let pct =
+      ex.length
+      ? Math.round(
+          sc / ex.length * 100
+        )
+      : 0;
+
+    $("#examBox").innerHTML = `
+
+      <div class="note">
+
+        <div class="kpi">
+          ${sc}/${ex.length}
+        </div>
+
+        <b>
+          ${pct}% de aciertos
+        </b>
+
+        <br>
+
+        ${
+          pct >= 90
+          ? "Dominio excelente."
+          : pct >= 80
+          ? "Buen nivel; repasa tus errores."
+          : "Haz otra ronda adaptativa."
+        }
+
+      </div>
+
+      <button
+        class="btn"
+        style="margin-top:10px"
+        onclick="start()">
+
+        Repetir
+
+      </button>
+    `;
+
+    renderMap();
+    update();
+
+    return;
+
+  }
+
+
+  let x = ex[ei];
+
+  $("#examBox").innerHTML = `
+
+    <div class="muted">
+      Pregunta ${ei+1}
+      de ${ex.length}
+    </div>
+
+    <h3>
+      ${x[1]}
+    </h3>
+
+    ${x[2].map((o,k)=>`
+
+      <button
+        class="opt"
+        data-k="${k}">
+
+        ${o}
+
+      </button>
+
+    `).join("")}
+
+  `;
+
+
+  document
+    .querySelectorAll(".opt")
+    .forEach(b=>{
+
+      b.onclick = () => {
+
+        let k =
+          Number(
+            b.dataset.k
+          );
+
+        document
+          .querySelectorAll(".opt")
+          .forEach(z =>
+            z.disabled = true
+          );
+
+
+        S.topic[x[0]] =
+          S.topic[x[0]] ||
+          {
+            ok:0,
+            total:0
+          };
+
+        S.topic[x[0]].total++;
+
+
+        if(k === x[3]){
+
+          b.classList
+            .add("correct");
+
+          sc++;
+          S.ok++;
+
+          S.topic[x[0]].ok++;
+
+        }
+        else{
+
+          b.classList
+            .add("wrong");
+
+          document
+            .querySelectorAll(".opt")
+            [x[3]]
+            .classList
+            .add("correct");
+
+          S.err.push({
+            q:x[1],
+            t:x[0]
+          });
+
+        }
+
+
+        S.ans++;
+
+        save();
+
+
+        setTimeout(()=>{
+
+          ei++;
+
+          draw();
+
+        },550);
+
+      };
+
+    });
+
+}
+
+
+$("#start").onclick =
+  start;
+
+
+/* =========================================================
+   ESTADÍSTICAS
+========================================================= */
+
+function update(){
+
+  let p =
+    S.ans
+    ? Math.round(
+        S.ok / S.ans * 100
+      )
+    : 0;
+
+  $("#bar")
+    .style
+    .width =
+    p + "%";
+
+  $("#overall")
+    .textContent =
+    `${p}% de aciertos · ` +
+    `${S.ok} correctas / ` +
+    `${S.ans} respondidas`;
+
+
+  let a = [];
+  let seen = new Set();
+
+
+  [...S.err]
+    .reverse()
+    .forEach(e=>{
+
+      if(!seen.has(e.q)){
+
+        seen.add(e.q);
+
+        a.push(e);
+
+      }
+
+    });
+
+
+  $("#errors").innerHTML =
+    a.length
+
+    ? a.map((e,i)=>`
+
+        <div
+          class="card"
+          style="
+            padding:10px;
+            margin:8px 0
+          ">
+
+          <b>
+            ${i+1}.
+          </b>
+
+          ${e.q}
+
+          <div class="muted">
+
+            ${
+              T.find(
+                t=>t.id===e.t
+              )?.title || e.t
+            }
+
+          </div>
+
+        </div>
+
+      `).join("")
+
+    : "Todavía no hay errores.";
+
+}
+
+
+function save(){
+
+  localStorage.setItem(
+    "natureLifeGuide",
+    JSON.stringify(S)
+  );
+
+  update();
+
+}
+
+
+/* =========================================================
+   APUNTES
+========================================================= */
+
+$("#notes").value =
+  S.notes;
+
+
+$("#saveNotes").onclick = () => {
+
+  S.notes =
+    $("#notes").value;
+
+  save();
+
+  alert(
+    "Apuntes guardados."
+  );
+
+};
+
+
+/* =========================================================
+   INICIO
+========================================================= */
+
+renderMap();
+renderTheory();
+flash();
+update();
+
+</script>
+
+</body>
+</html>
